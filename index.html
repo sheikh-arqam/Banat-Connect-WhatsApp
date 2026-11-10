@@ -181,6 +181,13 @@
   .switch[aria-checked="true"]::after{ left:22px; }
   .toast{ position:fixed; left:50%; bottom:26px; transform:translateX(-50%) translateY(20px); background:linear-gradient(180deg,#4a2c14,#3e2312); color:#fff; border:1.5px solid var(--yellow); padding:.75rem 1.15rem; border-radius:16px; font-size:.88rem; opacity:0; pointer-events:none; transition:.25s; z-index:10001; max-width:88vw; text-align:center; box-shadow:0 14px 30px rgba(0,0,0,.45), inset 0 2px 3px rgba(255,255,255,.3); }
   .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+  .toast.tappable{ pointer-events:auto; cursor:pointer; }
+  /* The toast sits ABOVE the bottom navigation (nav items are 56px
+     plus the bar's own padding and the phone's bottom safe-area), so
+     a toast — e.g. the "Logged in with email" message right after
+     login — never covers the Home / Classes / Activity / Groups /
+     More labels. */
+  .toast{ bottom:calc(78px + env(safe-area-inset-bottom)); }
 
   /* ===== Front page (first screen — approved BANAT banner poster, full and uncropped) ===== */
   .front-wrap{ position:fixed; inset:0; width:100%; height:100dvh; min-height:100dvh; z-index:9999; background:radial-gradient(720px 520px at 0% 28%, rgba(233,200,150,.26), rgba(233,200,150,0) 55%), radial-gradient(620px 520px at 100% 100%, rgba(154,98,40,.28), rgba(154,98,40,0) 60%), linear-gradient(170deg,#241505,#171310 58%,#100b06); display:flex; flex-direction:column; visibility:visible; opacity:1; }
@@ -200,7 +207,7 @@
   .front-btn:active{ transform:translateY(3px); box-shadow:0 3px 0 #7d6242, 0 9px 16px rgba(0,0,0,.4), inset 0 2px 3px rgba(255,255,255,.9); }
 
   /* ===== Email login (females only, no phone number) ===== */
-  .login-wrap{ position:fixed; inset:0; z-index:300; overflow-y:auto; display:flex; justify-content:center; padding:2.2rem 1rem 2.5rem;
+  .login-wrap{ position:fixed; inset:0; z-index:300; overflow-y:auto; display:flex; justify-content:center; align-items:center; min-height:100vh; min-height:100dvh; padding:2.2rem 1rem 2.5rem;
     background:
       repeating-linear-gradient(90deg, rgba(255,255,255,.045) 0 54px, rgba(255,255,255,0) 54px 128px),
       radial-gradient(700px 420px at 88% -5%, rgba(233,220,192,.28), rgba(233,220,192,0) 60%),
@@ -784,6 +791,14 @@
         breathing room) to its top padding, so both buttons sit fully
         inside the header, visible and tappable. */
   .dash-head{ padding-bottom:1.1rem; }
+  /* HOME HEADER SAFE AREA: the dashboard header touched the very top
+     edge of the phone screen, so "Welcome back", the avatar and the
+     menu sat in the status-bar zone, half-clipped. Same fix as the
+     chat header below: add the phone's top safe-area inset to the
+     header's own top padding (base 1rem), so the whole header sits
+     clearly below the status bar. On desktop the inset is 0 and the
+     header looks exactly as before. */
+  .dash-head{ padding-top:calc(1rem + env(safe-area-inset-top)); }
   .dash-grid{ margin:.8rem .8rem 0; }
   .chat-head{ padding-top:calc(.75rem + env(safe-area-inset-top)); }
 
@@ -800,6 +815,8 @@
   .jitsi-head .rt span{ font-size:.78rem; color:#e8d5b5; }
   .jitsi-open{ color:#e9dcc0; font-size:.82rem; font-weight:700; border:1.5px solid rgba(255,255,255,.6); border-radius:999px; padding:.45rem .9rem; text-decoration:none; display:inline-flex; align-items:center; min-height:40px; }
   .jitsi-end{ background:#d90429; color:#fff; font-weight:800; font-size:.9rem; border-radius:999px; padding:.5rem 1.1rem; min-height:42px; border:1px solid #d90429; }
+  .jitsi-back{ background:transparent; border:1.5px solid rgba(255,255,255,.6); border-radius:999px; width:42px; height:42px; min-height:42px; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; flex:none; padding:0; }
+  .jitsi-back svg{ width:22px; height:22px; fill:#fff; }
   .jitsi-frame{ flex:1; min-height:0; background:#000; }
   .jitsi-frame iframe{ width:100%; height:100%; border:0; display:block; }
   .jitsi-note{ font-size:.76rem; color:#e8d5b5; text-align:center; padding:.45rem .9rem calc(.45rem + env(safe-area-inset-bottom)); background:rgba(30,17,6,.55); line-height:1.5; }
@@ -1108,6 +1125,7 @@
 <div class="overlay" id="callOverlay" role="dialog" aria-label="Live class">
   <div class="room">
     <div class="room-head">
+      <button class="icon-btn" id="roomBack" aria-label="Back — leave the class"><svg viewBox="0 0 24 24" style="fill:#fff"><path d="M20 11H7.8l5.6-5.6L12 4l-8 8 8 8 1.4-1.4L7.8 13H20z"/></svg></button>
       <span class="live-badge" id="roomBadge">● LIVE CLASS</span>
       <div class="rt"><b id="callName">—</b><span id="callState">Connecting…</span></div>
       <span class="room-count" id="roomCount"></span>
@@ -1170,6 +1188,7 @@
 <div class="overlay" id="jitsiOverlay" role="dialog" aria-label="Call">
   <div class="jitsi-room">
     <div class="jitsi-head">
+      <button class="jitsi-back" id="jitsiBackBtn" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M20 11H7.8l5.6-5.6L12 4l-8 8 8 8 1.4-1.4L7.8 13H20z"/></svg></button>
       <div class="rt"><b id="jitsiTitle">Call</b><span id="jitsiSub">Connecting…</span></div>
       <a class="jitsi-open" id="jitsiOpenLink" href="#" target="_blank" rel="noopener">Open in browser</a>
       <button class="jitsi-end" id="jitsiEndBtn">End call</button>
@@ -1182,7 +1201,7 @@
 <!-- Settings / generic sheet -->
 <div class="overlay" id="sheetOverlay" role="dialog" aria-label="Panel">
   <div class="sheet">
-    <div class="sheet-head"><b id="sheetTitle">Settings</b><button class="icon-btn" id="sheetClose" aria-label="Close"><svg viewBox="0 0 24 24" style="fill:#fff"><path d="M19 6.4 17.6 5 12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19 12 13.4 17.6 19 19 17.6 13.4 12z"/></svg></button></div>
+    <div class="sheet-head"><button class="icon-btn" id="sheetBack" aria-label="Back"><svg viewBox="0 0 24 24" style="fill:#fff"><path d="M20 11H7.8l5.6-5.6L12 4l-8 8 8 8 1.4-1.4L7.8 13H20z"/></svg></button><b id="sheetTitle">Settings</b><button class="icon-btn" id="sheetClose" aria-label="Close"><svg viewBox="0 0 24 24" style="fill:#fff"><path d="M19 6.4 17.6 5 12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19 12 13.4 17.6 19 19 17.6 13.4 12z"/></svg></button></div>
     <div id="sheetBody"></div>
   </div>
 </div>
@@ -1309,8 +1328,70 @@ function esc(s){ return String(s).replace(/[&<>"']/g,function(c){return {"&":"&a
 function initials(name){ var p=name.replace(/[^A-Za-z\u0600-\u06FF ]/g,"").trim().split(/\s+/); return ((p[0]||"B")[0]+((p[1]||"")[0]||"")).toUpperCase(); }
 function lastMsg(c){ return c.msgs[c.msgs.length-1]; }
 function ticks(s){ if(s==="read") return '<span class="tick read">✓✓</span>'; if(s==="delivered") return '<span class="tick sent">✓✓</span>'; return '<span class="tick sent">✓</span>'; }
-var toastTimer=null;
-function toast(msg,ms){ var t=$("toast"); t.textContent=msg; t.classList.add("show"); if(toastTimer) clearTimeout(toastTimer); toastTimer=setTimeout(function(){ t.classList.remove("show"); }, ms||2200); }
+var toastTimer=null, toastTapAction=null;
+function toast(msg,ms){ var t=$("toast"); t.textContent=msg; t.classList.add("show"); t.classList.remove("tappable"); toastTapAction=null; if(toastTimer) clearTimeout(toastTimer); toastTimer=setTimeout(function(){ t.classList.remove("show"); t.classList.remove("tappable"); toastTapAction=null; }, ms||2200); }
+/* A toast the user can TAP to run an action. Used by the mic-error
+   fallback: the recorder-picker click there runs from a promise
+   .catch — outside the original tap's user-gesture window — so
+   Android may ignore it; the toast itself then offers a real tap
+   that opens the recorder. Plain toast() calls stay non-tappable. */
+function toastTap(msg,ms,fn){ toast(msg,ms); toastTapAction=fn; $("toast").classList.add("tappable"); }
+$("toast").addEventListener("click",function(){
+  if(!toastTapAction) return;
+  var fn=toastTapAction; toastTapAction=null;
+  if(toastTimer) clearTimeout(toastTimer);
+  var t=$("toast"); t.classList.remove("show"); t.classList.remove("tappable");
+  fn();
+});
+
+/* ================= BACK NAVIGATION (browser history) =================
+   Every screen change pushes ONE history entry, so the phone's system
+   back button (the APK shell calls webView.goBack() when history
+   exists) steps back through screens instead of exiting the app;
+   only at the home base — no pushed entries left — does back leave.
+   navStack mirrors the open layers, bottom → top. In-app close
+   buttons keep history in sync via navSyncClose (they go back one
+   entry; the resulting popstate is skipped via navSkipPop). A real
+   system-back popstate closes the top layer VISUALLY through the
+   normal close functions, with navSilent suppressing any further
+   history changes while it runs. All history calls are try/caught:
+   where the history API is unavailable the in-app buttons still
+   navigate exactly as before. */
+var navStack=[], navSkipPop=0, navSilent=false;
+function navPush(entry){
+  var top=navStack[navStack.length-1];
+  /* Re-opening the layer already on top (another chat, another sheet)
+     replaces its entry instead of stacking a duplicate. */
+  if(top && top.layer===entry.layer && (entry.layer==="chat"||entry.layer==="sheet")){ navStack[navStack.length-1]=entry; return; }
+  navStack.push(entry);
+  try{ history.pushState({bc:1},""); }catch(e){}
+}
+function navSyncClose(layer){
+  if(navSilent) return;
+  var top=navStack[navStack.length-1];
+  if(top && top.layer===layer){
+    navStack.pop();
+    try{ navSkipPop++; history.back(); }catch(e){ navSkipPop--; }
+  }
+}
+function navViewBelow(){
+  for(var i=navStack.length-1;i>=0;i--) if(navStack[i].layer==="view") return navStack[i].view;
+  return "chats";
+}
+window.addEventListener("popstate",function(){
+  if(navSkipPop>0){ navSkipPop--; return; }
+  if(!navStack.length) return; /* home base — back leaves the app from here */
+  var top=navStack.pop();
+  navSilent=true;
+  try{
+    if(top.layer==="chat") closeChat();
+    else if(top.layer==="sheet") closeSheet();
+    else if(top.layer==="call") endCall(true);
+    else if(top.layer==="jitsi") closeJitsiCall();
+    else if(top.layer==="view") switchView(navViewBelow());
+  }catch(e){}
+  navSilent=false;
+});
 function getChat(id){ for(var i=0;i<CHATS.length;i++) if(CHATS[i].id===id) return CHATS[i]; return null; }
 function nowTime(){ var d=new Date(),h=d.getHours(),m=d.getMinutes(),ap=h>=12?"PM":"AM"; h=h%12||12; return h+":"+(m<10?"0":"")+m+" "+ap; }
 
@@ -1440,10 +1521,17 @@ function openChat(id){
   $("chatStatus").textContent = c.group ? (c.sub||"group") : (c.online ? "online" : "last seen today at 9:41 AM");
   renderMsgs(); renderChats();
   $("app").classList.add("in-chat");
+  navPush({layer:"chat",id:id});
   updateSendIcon();
   setTimeout(function(){ $("msgInput").focus(); },80);
 }
-function closeChat(){ $("app").classList.remove("in-chat"); }
+function closeChat(){
+  navSyncClose("chat");
+  /* Leaving a chat must not leave a Jitsi call frame in the page
+     holding the microphone — close it so the mic is released. */
+  closeJitsiCall();
+  $("app").classList.remove("in-chat");
+}
 
 function updateSendIcon(){
   var has=$("msgInput").value.trim().length>0;
@@ -1639,6 +1727,7 @@ function startCall(name,color,kind,opts){
   closeSide();
   renderTiles();
   $("callOverlay").classList.add("open");
+  navPush({layer:"call"});
   state.callSec=0;
   clearInterval(state.callTimer);
   setTimeout(function(){
@@ -1652,17 +1741,18 @@ function startCall(name,color,kind,opts){
     },1100);
   },700);
 }
-function endCall(){
+function endCall(silent){
+  navSyncClose("call");
   clearInterval(state.callTimer);
   $("callOverlay").classList.remove("open");
   var present=room.people.filter(function(p){ return p.present; }).length;
-  toast("Class ended • "+fmtSec(state.callSec)+(room.isClass?" • "+present+" attended"+(room.attMarked?" • attendance saved":""):""));
+  if(silent!==true) toast("Class ended • "+fmtSec(state.callSec)+(room.isClass?" • "+present+" attended"+(room.attMarked?" • attendance saved":""):""));
   state.callSec=0;
 }
 
 /* ================= SHEETS (settings / new chat / profile) ================= */
-function openSheet(title,html){ $("sheetTitle").textContent=title; $("sheetBody").innerHTML=html; $("sheetOverlay").classList.add("open"); wireSheet(); }
-function closeSheet(){ $("sheetOverlay").classList.remove("open"); }
+function openSheet(title,html){ $("sheetTitle").textContent=title; $("sheetBody").innerHTML=html; $("sheetOverlay").classList.add("open"); navPush({layer:"sheet"}); wireSheet(); }
+function closeSheet(){ navSyncClose("sheet"); $("sheetOverlay").classList.remove("open"); }
 var ICONS={
   lock:'<svg viewBox="0 0 24 24"><path d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5zm-3 8V7a3 3 0 1 1 6 0v3z"/></svg>',
   bell:'<svg viewBox="0 0 24 24"><path d="M12 22a2.5 2.5 0 0 0 2.5-2.5h-5A2.5 2.5 0 0 0 12 22zm7-5v-2c0-3.5-1.3-5.4-4-6.5V7a3 3 0 1 0-6 0v1.5C6.3 9.6 5 11.5 5 15v2l-2 3h18z"/></svg>',
@@ -1673,6 +1763,10 @@ var ICONS={
   logout:'<svg viewBox="0 0 24 24"><path d="M17 7l-1.4 1.4L18.2 11H9v2h9.2l-2.6 2.6L17 17l5-5zM5 5h6V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h6v-2H5z"/></svg>'
 };
 function doLogout(){
+  /* Reset back navigation with the session: no layer stays on the
+     stack, and the closes below must not touch history. */
+  navSilent=true; navStack=[];
+  try{ history.replaceState({bc:"home"},""); }catch(e){}
   clearInterval(state.callTimer); state.callTimer=null; state.callSec=0;
   var co=$("callOverlay"); if(co) co.classList.remove("open");
   var jo=$("jitsiOverlay"); if(jo) jo.classList.remove("open");
@@ -1685,6 +1779,7 @@ function doLogout(){
   var le=$("loginError"); if(le) le.textContent="";
   loginDone=false;
   toast("Logged out — log in again with your email to continue.");
+  navSilent=false;
 }
 function settingsHTML(){
   return '<button class="set-row" data-act="profile"><span class="avatar lg" style="background:#8a6d4f">'+esc(initials(state.user.name))+'</span><span class="tt"><b>'+esc(state.user.name)+' ('+esc(state.user.role)+')</b><span>'+esc(state.user.email||"Logged in with email")+' • Assalamu alaikum! 🌙</span></span></button>'
@@ -1733,6 +1828,7 @@ function wireSheet(){
 
 /* ================= NAV / EVENTS ================= */
 function switchView(v){
+  var prevView=state.view;
   state.view=v;
   ["chats","updates","communities","calls"].forEach(function(k){ $("view-"+k).hidden = k!==v; });
   document.querySelectorAll(".nav-item").forEach(function(n){ n.classList.toggle("on", n.getAttribute("data-nav")===v); });
@@ -1743,6 +1839,13 @@ function switchView(v){
   if(v==="communities"){ fab.style.display="none"; } else { fab.style.display="flex"; }
   var sw=document.querySelector(".side-wrap"); if(sw) sw.scrollTop=0;
   window.scrollTo(0,0);
+  /* Back navigation: a tab change is a screen change — push it, so
+     the system back button returns to the previous tab. The initial
+     home tab (chats) is the base and is never pushed. */
+  if(!navSilent && v!==prevView){
+    var nTop=navStack[navStack.length-1];
+    if(!(!navStack.length && v==="chats") && !(nTop && nTop.layer==="view" && nTop.view===v)) navPush({layer:"view",view:v});
+  }
 }
 document.querySelectorAll(".nav-item").forEach(function(n){ n.addEventListener("click",function(){
   var v=n.getAttribute("data-nav");
@@ -1850,9 +1953,30 @@ function classSendFile(file){
   toast("Sent to the class: "+file.name);
 }
 /* ---- Voice note: real recording with MediaRecorder ---- */
-var voiceRec=null, voiceChunks=[], voiceStream=null, voiceTimer=null, voiceSecs=0, voiceDiscard=false;
+var voiceRec=null, voiceChunks=[], voiceStream=null, voiceTimer=null, voiceSecs=0, voiceDiscard=false, voicePending=false;
 function fmtDur(s){ return Math.floor(s/60)+":"+(s%60<10?"0":"")+s%60; }
 function stopVoiceStream(){ if(voiceStream){ voiceStream.getTracks().forEach(function(t){ t.stop(); }); voiceStream=null; } }
+/* Ask for the mic with any previous stream released FIRST. voiceStream
+   is the ONE shared stream reference: if an earlier attempt leaked a
+   stream whose tracks were never stopped, the audio source stays busy
+   and every later getUserMedia fails with NotReadableError ("Could
+   not start audio source") — stopping the old tracks before every new
+   request is what prevents that. Constraints stay plain {audio:true}
+   (inside getMicStream) — no echoCancellation / noiseSuppression /
+   sampleRate / deviceId. */
+function requestMicStream(){
+  stopVoiceStream();
+  return getMicStream();
+}
+/* Stop EVERYTHING that could be holding the mic from the chat side:
+   a live recording is discarded and stopped, and any live stream's
+   tracks are stopped. Used before a Jitsi call opens, so the call
+   and the chat mic never fight over the audio source. */
+function stopActiveVoiceCapture(){
+  voicePending=false;
+  if(voiceRec && voiceRec.state==="recording"){ voiceDiscard=true; voiceRec.stop(); }
+  stopVoiceStream();
+}
 function endRecordingUI(){
   if(voiceTimer){ clearInterval(voiceTimer); voiceTimer=null; }
   $("recBar").hidden=true; $("composerBox").hidden=false; $("sendBtn").hidden=false;
@@ -1864,14 +1988,17 @@ function voiceFallback(err){
      voice note (not just pick an existing file), and the recorded file
      lands in the chat as a playable voice note. When getUserMedia
      failed, show the REAL error (name + message), never a generic
-     "blocked" text. */
+     "blocked" text. The openVoicePicker() click below runs from a
+     promise .catch — outside the tap's user-gesture window — so
+     Android may ignore it; the toast is therefore TAPPABLE, and
+     tapping it opens the recorder with a real user tap. */
   mediaTarget="chat";
   if(err){
     var en=(err&&err.name)?err.name:"Error";
     var em=(err&&err.message)?err.message:String(err||"");
-    toast("Mic error: "+en+(em?" — "+em:"")+" — opening the recorder so you can still record a voice note.",5600);
+    toastTap("Mic error: "+en+(em?" — "+em:"")+" — opening the recorder so you can still record a voice note. Tap here to open the recorder.",5600,function(){ openVoicePicker(); });
   } else {
-    toast("Opening the recorder — record your voice note and it will be sent here.",4600);
+    toastTap("Opening the recorder — record your voice note and it will be sent here. Tap here to open the recorder.",4600,function(){ openVoicePicker(); });
   }
   openVoicePicker();
 }
@@ -1905,9 +2032,12 @@ function pickRecMime(){
   }
   return "";
 }
-function startVoiceRecord(){
-  if(voiceRec && voiceRec.state==="recording") return;
-  getMicStream().then(function(stream){
+function beginVoiceRecording(stream){
+    /* If a Jitsi call opened while this mic request was in flight, the
+       call owns the mic now — release this stream instead of starting
+       a recording over the call. */
+    var jfOpen=$("jitsiFrame");
+    if(jfOpen && jfOpen.querySelector("iframe")){ stream.getTracks().forEach(function(t){ t.stop(); }); return; }
     voiceStream=stream;
     if(typeof MediaRecorder==="undefined"){
       /* Mic stream is live, but this WebView has no MediaRecorder:
@@ -1953,8 +2083,48 @@ function startVoiceRecord(){
     $("composerBox").hidden=true; $("sendBtn").hidden=true; $("recBar").hidden=false;
     $("attachPanel").hidden=true; $("emojiPanel").hidden=true;
     voiceTimer=setInterval(function(){ voiceSecs++; $("recTime").textContent=fmtDur(voiceSecs); if(voiceSecs>=300 && voiceRec && voiceRec.state==="recording") voiceRec.stop(); },1000);
+}
+function startVoiceRecord(){
+  /* In-flight guard: if a mic request is already pending, or a
+     recording is already running, ignore extra taps. A double-tap
+     must never fire two getUserMedia calls at once — the second one
+     fails with NotReadableError and can leak the first stream, which
+     leaves the mic busy for every later tap. */
+  if(voicePending) return;
+  if(voiceRec && voiceRec.state==="recording") return;
+  /* Only one audio capture at a time: a Jitsi call frame still in
+     the page is holding the mic, so close it first and let the
+     audio source release before asking for the mic. */
+  var jf=$("jitsiFrame");
+  if(jf && jf.querySelector("iframe")) closeJitsiCall();
+  voicePending=true;
+  requestMicStream().then(function(stream){
+    voicePending=false;
+    beginVoiceRecording(stream);
   }).catch(function(err){
-    voiceFallback(err);
+    /* Release anything this attempt may have left behind, then —
+       for NotReadableError (audio source busy, e.g. still waking up
+       right after the permission was granted, or a just-closed
+       capture still releasing) or NotAllowedError — wait ~500ms and
+       retry ONCE with the same plain {audio:true} before falling
+       back to the recorder. */
+    stopVoiceStream();
+    var en=err&&err.name;
+    if(en==="NotReadableError"||en==="NotAllowedError"){
+      setTimeout(function(){
+        requestMicStream().then(function(stream){
+          voicePending=false;
+          beginVoiceRecording(stream);
+        }).catch(function(err2){
+          voicePending=false;
+          stopVoiceStream();
+          voiceFallback(err2);
+        });
+      },500);
+    } else {
+      voicePending=false;
+      voiceFallback(err);
+    }
   });
 }
 $("recCancel").addEventListener("click",function(){ voiceDiscard=true; if(voiceRec && voiceRec.state==="recording") voiceRec.stop(); else { endRecordingUI(); stopVoiceStream(); } });
@@ -1991,6 +2161,7 @@ $("mainMenu").querySelectorAll("[data-menu]").forEach(function(b){ b.addEventLis
 }); });
 $("ownAvatar").addEventListener("click",function(){ openSheet("Settings", settingsHTML()); });
 $("sheetClose").addEventListener("click",closeSheet);
+$("sheetBack").addEventListener("click",closeSheet);
 $("sheetOverlay").addEventListener("click",function(e){ if(e.target===this) closeSheet(); });
 /* ---- Live class room controls ---- */
 $("ctrlMute").addEventListener("click",toggleMute);
@@ -2045,6 +2216,7 @@ $("icForm").addEventListener("submit",function(e){
 $("icCamBtn").addEventListener("click",function(){ mediaTarget="class"; $("cameraInput").click(); });
 $("icMicBtn").addEventListener("click",function(){ mediaTarget="class"; openVoicePicker(); });
 $("endCallBtn").addEventListener("click",endCall);
+$("roomBack").addEventListener("click",function(){ endCall(); });
 /* ---- Chat header call buttons — REAL calls via Jitsi, inside the app ----
    One Jitsi room per class/chat (BanatConnect-<chat id>): the teacher and
    every student who taps the call button in the same chat lands in the
@@ -2054,6 +2226,9 @@ $("endCallBtn").addEventListener("click",endCall);
    view, "Open in browser" in the call header opens the same room. */
 function openJitsiCall(kind){
   var c=getChat(state.openId); if(!c) return;
+  /* Only one audio capture at a time: stop any live chat voice
+     recording/stream first, so it releases the mic for the call. */
+  stopActiveVoiceCapture();
   var roomName="BanatConnect-"+String(c.id||"class").replace(/[^A-Za-z0-9-]/g,"");
   var isVideo = kind==="video";
   var url="https://meet.jit.si/"+roomName+"#config.prejoinPageEnabled=false"+(isVideo?"":"&config.startAudioOnly=true&config.startWithVideoMuted=true");
@@ -2068,14 +2243,17 @@ function openJitsiCall(kind){
   ifr.title=(isVideo?"Video call":"Voice call")+" — "+c.name;
   frame.appendChild(ifr);
   $("jitsiOverlay").classList.add("open");
+  navPush({layer:"jitsi"});
 }
 function closeJitsiCall(){
+  navSyncClose("jitsi");
   $("jitsiFrame").innerHTML="";
   $("jitsiOverlay").classList.remove("open");
 }
 $("voiceBtn").addEventListener("click",function(){ openJitsiCall("voice"); });
 $("videoBtn").addEventListener("click",function(){ openJitsiCall("video"); });
 $("jitsiEndBtn").addEventListener("click",closeJitsiCall);
+$("jitsiBackBtn").addEventListener("click",closeJitsiCall);
 $("chatMoreBtn").addEventListener("click",function(){ var c=getChat(state.openId); if(c) openSheet(c.name, profileHTML(c)); });
 $("chatWho").addEventListener("click",function(){ var c=getChat(state.openId); if(c) openSheet(c.name, profileHTML(c)); });
 
@@ -2110,6 +2288,11 @@ function doLogin(){
   var dp=$("dashPill"); if(dp) dp.innerHTML="Banat Institute • "+esc(state.user.role)+" Account <span class=\"chev\">▾</span>";
   var fs=$("frontScreen"); if(fs) fs.style.display="none";
   $("loginScreen").style.display="none";
+  /* Back-navigation base: home is the root — the system back button
+     leaves the app from here; every screen opened from here pushes
+     its own history entry (see the BACK NAVIGATION block). */
+  navStack=[];
+  try{ history.replaceState({bc:"home"},""); }catch(e){}
   window.scrollTo(0,0);
   toast("Assalamu alaikum, "+name.split(" ")[0]+"! Logged in with email — no phone number needed. 🌸");
 }
