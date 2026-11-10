@@ -1235,7 +1235,7 @@
 
     <nav class="bottom-nav" aria-label="Main">
       <button class="nav-item on" data-nav="chats"><span class="nav-badge" id="totalUnread">9</span><span class="pill"><svg viewBox="0 0 24 24"><path d="M12 3l9 8h-3v9h-4v-6H10v6H6v-9H3z"/></svg></span>Home</button>
-      <button class="nav-item" data-nav="calls"><span class="pill"><svg viewBox="0 0 24 24"><path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zm2 4v2h4V8zm0 5v2h7v-2zm11-5-4 2.5v3L17 16z"/></svg></span>Classes</button>
+      <button class="nav-item" data-nav="calls"><span class="pill"><svg viewBox="0 0 24 24"><path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zm2 4v2h4V8zm0 5v2h7v-2zm11-5-4 2.5v3L17 16z"/></svg></span>Calls</button>
       <button class="nav-item" data-nav="updates"><span class="pill"><svg viewBox="0 0 24 24"><path d="M4 20V10h3.5v10zm6.25 0V4H14v16zm6.25 0v-7H20v7z"/></svg></span>Activity</button>
       <button class="nav-item" data-nav="communities"><span class="pill"><svg viewBox="0 0 24 24"><path d="M16 11a4 4 0 1 0-4-4 4 4 0 0 0 4 4zM8 11a4 4 0 1 0-3.9-4.6A5.9 5.9 0 0 1 6 11.4 4 4 0 0 0 8 11zm8 2c-2.7 0-8 1.3-8 4v3h16v-3c0-2.7-5.3-4-8-4zm-8.2.4C6.4 13.2 2 14.5 2 17v3h4v-3a6.4 6.4 0 0 1 1.8-3.6z"/></svg></span>Groups</button>
       <button class="nav-item" data-nav="more"><span class="pill"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/><circle cx="12" cy="5" r="2" opacity=".55"/><circle cx="19" cy="5" r="2" opacity=".55"/><circle cx="5" cy="19" r="2" opacity=".55"/><circle cx="12" cy="19" r="2" opacity=".55"/><circle cx="19" cy="19" r="2" opacity=".55"/><circle cx="5" cy="5" r="2" opacity=".55"/></svg></span>More</button>
@@ -1581,7 +1581,17 @@ function navSyncClose(layer){
   var top=navStack[navStack.length-1];
   if(top && top.layer===layer){
     navStack.pop();
-    try{ navSkipPop++; history.back(); }catch(e){ navSkipPop--; }
+    /* Step the browser history back ONLY when the current history
+       entry is one this app pushed — app entries carry {bc:1}, the
+       base entry does not. If the history stack and the app's nav
+       stack are out of sync, a blind history.back() can walk PAST
+       the app's base entry and close the tab entirely (seen once
+       when ending a panel voice call: the tab landed on
+       chrome://newtab). In that case the app stack entry popped
+       above is enough — history is left untouched. */
+    var isAppEntry=false;
+    try{ isAppEntry = !!(history.state && history.state.bc===1); }catch(e){}
+    if(isAppEntry){ try{ navSkipPop++; history.back(); }catch(e){ navSkipPop--; } }
   }
 }
 function navViewBelow(){
@@ -2020,11 +2030,13 @@ function startCall(name,color,kind,opts){
   $("callState").textContent="Connecting… • "+(room.videoOn?"camera on":"camera off")+", "+(state.settings.micMuted?"mic muted":"mic live");
   $("shareView").hidden=true; $("stage").classList.remove("sharing");
   $("ctrlShare").classList.remove("on"); $("ctrlHand").classList.remove("hand-on");
-  /* Rejoining a class that was left while the lesson slides were
-     shared brings the slides back, instead of the share view
-     vanishing entirely on rejoin. */
-  if(isClass && lastClassSharing){
+  /* The class is LIVE and the teacher is already sharing the lesson
+     slides, so they are visible from the FIRST join — no need to tap
+     Share screen first. This also covers rejoining (the slides stay
+     up), and the Share toggle below can still hide/show them. */
+  if(isClass){
     room.sharing=true;
+    lastClassSharing=true;
     $("shareView").hidden=false;
     $("stage").classList.add("sharing");
     $("ctrlShare").classList.add("on");
@@ -2488,6 +2500,26 @@ function callLinkHTML(chat){
   +'<a class="ghost-btn" style="text-align:center;text-decoration:none" href="'+esc(url)+'" target="_blank" rel="noopener">Open the call link</a>'
   +'</div>';
 }
+/* "New call" picker — opened by the + FAB on the Calls tab. Lists the
+   same demo contacts and classes as the chat list; each row carries a
+   real Voice call and a real Video call button (wired in wireSheet via
+   [data-newcall]) that open that chat's BanatConnect-<id> room through
+   openJitsiCall, in the chosen type. */
+function newCallHTML(){
+  var phoneIc='<svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:currentColor"><path d="M6.6 10.8a15.9 15.9 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.24 11.4 11.4 0 0 0 3.6.6 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.4 11.4 0 0 0 .6 3.6 1 1 0 0 1-.25 1z"/></svg>';
+  var videoIc='<svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:currentColor"><path d="M17 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3.5l4 4v-11z"/></svg>';
+  function callRow(c){
+    return '<div class="set-row" style="cursor:default"><span class="avatar md" style="background:'+avColor(c.color)+'">'+esc(initials(c.name))+'</span>'
+    +'<span class="tt"><b>'+esc(c.name)+'</b><span>'+(c.group?esc(c.sub||"Class / group"):(c.online?"online":"Banat Connect student"))+'</span></span>'
+    +'<button class="mini-btn" data-newcall="'+c.id+'" data-calltype="voice" aria-label="Voice call — '+esc(c.name)+'">'+phoneIc+'</button>'
+    +'<button class="mini-btn" data-newcall="'+c.id+'" data-calltype="video" aria-label="Video call — '+esc(c.name)+'">'+videoIc+'</button></div>';
+  }
+  var h='<div class="empty-note" style="padding:1rem 1.1rem .3rem;text-align:left">Choose who to call — tap the phone for a voice call, the camera for a video call. Everyone who taps call in the same chat joins the same call room.</div>';
+  CHATS.filter(function(c){ return !c.group; }).forEach(function(c){ h+=callRow(c); });
+  h+='<div class="section-label">Classes &amp; groups</div>';
+  CHATS.filter(function(c){ return c.group; }).forEach(function(c){ h+=callRow(c); });
+  return h;
+}
 function wireSheet(){
   var body=$("sheetBody");
   body.querySelectorAll("[data-switch]").forEach(function(sw){ sw.addEventListener("click",function(e){
@@ -2499,6 +2531,11 @@ function wireSheet(){
     toast(sw.getAttribute("aria-label")+": "+(!on?"On":"Off"));
   }); });
   body.querySelectorAll("[data-openchat]").forEach(function(b){ b.addEventListener("click",function(){ closeSheet(); switchView("chats"); openChat(b.getAttribute("data-openchat")); }); });
+  body.querySelectorAll("[data-newcall]").forEach(function(b){ b.addEventListener("click",function(){
+    var nc=getChat(b.getAttribute("data-newcall")); var tp=b.getAttribute("data-calltype")==="video"?"video":"voice";
+    closeSheet();
+    if(nc) openJitsiCall(tp,nc);
+  }); });
   body.querySelectorAll("[data-joincall]").forEach(function(b){ b.addEventListener("click",function(){
     var c=getChat(b.getAttribute("data-joincall")); closeSheet();
     if(c) startCall(c.name,c.color,"video",{isClass:true});
@@ -3044,7 +3081,7 @@ document.querySelectorAll("[data-dash]").forEach(function(b){ b.addEventListener
 document.querySelectorAll("[data-quick]").forEach(function(b){ b.addEventListener("click",function(){ switchView("chats"); openChat(b.getAttribute("data-quick")); }); });
 document.querySelectorAll("[data-quick-add]").forEach(function(b){ b.addEventListener("click",function(){ openSheet("New chat", newChatHTML()); }); });
 $("fab").addEventListener("click",function(){
-  if(state.view==="calls"){ startCall("Tajweed Class — Group A",10,"video",{isClass:true}); return; }
+  if(state.view==="calls"){ openSheet("New call", newCallHTML()); return; }
   if(state.view==="updates"){ openSheet("My status", statusAddHTML()); return; }
   openSheet("New chat", newChatHTML());
 });
@@ -3136,6 +3173,32 @@ $("roomBack").addEventListener("click",function(){ endCall(); });
    button joins the same room audio-only. Ending the call clears the
    frame, which hangs up properly. If the embed cannot load in a given
    view, "Open in browser" in the call header opens the same room. */
+/* The call runs through the Jitsi IFrame API (external_api.js from
+   fairmeeting.net), NOT a plain <iframe src>: the plain URL fragment
+   does not set the caller's display name reliably — the first
+   participant showed up as the default "fairmeeter" and a name
+   prompt appeared late. The IFrame API takes userInfo.displayName
+   in its constructor, and the 'videoConferenceJoined' handler below
+   re-sends it with executeCommand, so the logged-in user's name is
+   there from the first join with no manual prompt. If the API
+   script cannot load, openJitsiCall falls back to the plain iframe
+   URL so the call still works. */
+var jitsiApi=null, jitsiCallSeq=0, jitsiApiLoading=false, jitsiApiWaiters=[];
+function loadJitsiApi(cb){
+  if(window.JitsiMeetExternalAPI){ cb(true); return; }
+  jitsiApiWaiters.push(cb);
+  if(jitsiApiLoading) return;
+  jitsiApiLoading=true;
+  var s=document.createElement("script");
+  s.src="https://fairmeeting.net/external_api.js";
+  function done(ok){
+    var q=jitsiApiWaiters; jitsiApiWaiters=[]; jitsiApiLoading=false;
+    q.forEach(function(f){ f(ok && !!window.JitsiMeetExternalAPI); });
+  }
+  s.onload=function(){ done(true); };
+  s.onerror=function(){ done(false); };
+  document.head.appendChild(s);
+}
 function openJitsiCall(kind,chat){
   var c=chat||getChat(state.openId); if(!c) return;
   /* Only one audio capture at a time: stop any live chat voice
@@ -3149,10 +3212,7 @@ function openJitsiCall(kind,chat){
      log in with Google/GitHub/Facebook, which blocked every second
      joiner in its lobby).
      Same room name per chat, so everyone tapping Call in this chat —
-     now or later — lands in the SAME room. The fragment uses the
-     current config keys: prejoinConfig.enabled=false skips the
-     prejoin page, userInfo.displayName carries the caller's name,
-     and voice calls join audio-only with video muted. */
+     now or later — lands in the SAME room. */
   var frag="config.prejoinConfig.enabled=false&userInfo.displayName="+encodeURIComponent((state.user&&state.user.name)||"");
   if(!isVideo) frag+="&config.startAudioOnly=true&config.startWithVideoMuted=true";
   var url="https://fairmeeting.net/"+roomName+"#"+frag;
@@ -3162,17 +3222,49 @@ function openJitsiCall(kind,chat){
      included — a bare room URL would stop at the prejoin page. */
   $("jitsiOpenLink").href=url;
   var frame=$("jitsiFrame"); frame.innerHTML="";
-  var ifr=document.createElement("iframe");
-  ifr.src=url;
-  ifr.setAttribute("allow","camera; microphone; fullscreen; display-capture; autoplay; clipboard-write; encrypted-media");
-  ifr.setAttribute("allowfullscreen","");
-  ifr.title=(isVideo?"Video call":"Voice call")+" — "+c.name;
-  frame.appendChild(ifr);
+  if(jitsiApi){ try{ jitsiApi.dispose(); }catch(e){} jitsiApi=null; }
   $("jitsiOverlay").classList.add("open");
   navPush({layer:"jitsi"});
+  /* The API script loads async: if this call was already closed (or
+     replaced by another call) by the time it arrives, do nothing. */
+  var seq=++jitsiCallSeq;
+  var myName=(state.user&&state.user.name)||"";
+  var myEmail=(state.user&&state.user.email)||"";
+  function plainIframe(){
+    var ifr=document.createElement("iframe");
+    ifr.src=url;
+    ifr.setAttribute("allow","camera; microphone; fullscreen; display-capture; autoplay; clipboard-write; encrypted-media");
+    ifr.setAttribute("allowfullscreen","");
+    ifr.title=(isVideo?"Video call":"Voice call")+" — "+c.name;
+    frame.appendChild(ifr);
+  }
+  loadJitsiApi(function(ok){
+    if(seq!==jitsiCallSeq || !$("jitsiOverlay").classList.contains("open")) return;
+    if(!ok){ plainIframe(); return; }
+    try{
+      var cfg={ prejoinConfig:{ enabled:false } };
+      if(!isVideo){ cfg.startAudioOnly=true; cfg.startWithVideoMuted=true; }
+      var api=new JitsiMeetExternalAPI("fairmeeting.net",{
+        roomName:roomName,
+        parentNode:frame,
+        width:"100%",
+        height:"100%",
+        configOverwrite:cfg,
+        userInfo:{ displayName:myName, email:myEmail }
+      });
+      jitsiApi=api;
+      /* Belt and braces: set the name again the moment the join
+         completes, in case the constructor value was missed. */
+      api.addEventListener("videoConferenceJoined",function(){
+        try{ api.executeCommand("displayName", myName); }catch(e){}
+      });
+    }catch(e){ plainIframe(); }
+  });
 }
 function closeJitsiCall(){
   navSyncClose("jitsi");
+  jitsiCallSeq++; /* cancel a still-loading API script for this call */
+  if(jitsiApi){ try{ jitsiApi.dispose(); }catch(e){} jitsiApi=null; }
   var jfEl=$("jitsiFrame");
   var ifrEl=jfEl ? jfEl.querySelector("iframe") : null;
   if(ifrEl){
