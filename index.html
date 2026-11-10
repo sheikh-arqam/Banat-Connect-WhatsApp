@@ -1098,7 +1098,7 @@
         <button type="submit" class="send-btn" id="sendBtn" aria-label="Send message, or tap to record a voice note"><svg id="sendIcon" viewBox="0 0 24 24"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.9V21h2v-2.1A7 7 0 0 0 19 12zM5 11H3a9 9 0 0 0 8 8.9V21h2v-1.1A9 9 0 0 0 21 11h-2"/></svg></button>
         <input type="file" id="attachInput" hidden multiple />
         <input type="file" id="cameraInput" hidden accept="image/*" capture="environment" />
-        <input type="file" id="voiceInput" hidden accept="audio/*" />
+        <input type="file" id="voiceInput" hidden accept="audio/*" capture />
       </form>
     </div>
   </section>
@@ -1817,7 +1817,7 @@ $("voiceInput").addEventListener("change",function(){
   if(this.files&&this.files[0]) routeFile(this.files[0]); else mediaTarget="chat";
   this.value="";
 });
-function openVoicePicker(){ $("voiceInput").click(); }
+function openVoicePicker(){ var vi=$("voiceInput"); vi.setAttribute("capture",""); vi.click(); }
 /* ---- Camera: the tap itself opens the device camera (capture picker).
    The old in-page live camera first asked the browser for camera access;
    inside the app view that request is refused before the tap counts, so
@@ -1858,21 +1858,30 @@ function endRecordingUI(){
   $("recBar").hidden=true; $("composerBox").hidden=false; $("sendBtn").hidden=false;
   $("sendBtn").classList.remove("recording");
 }
-function voiceFallback(){
-  /* The mic is blocked or missing in this view: a voice note can still be
-     sent — the system picker offers the recorder / audio files, and the
-     picked file lands in the chat as a playable voice note. */
+function voiceFallback(err){
+  /* Fallback only after a real mic attempt: open the system voice
+     recorder via the capture picker, so the user can still RECORD a
+     voice note (not just pick an existing file), and the recorded file
+     lands in the chat as a playable voice note. When getUserMedia
+     failed, show the REAL error (name + message), never a generic
+     "blocked" text. */
   mediaTarget="chat";
-  toast("The microphone is blocked in this app view — pick a voice recording and it will be sent as a voice note.",4600);
+  if(err){
+    var en=(err&&err.name)?err.name:"Error";
+    var em=(err&&err.message)?err.message:String(err||"");
+    toast("Mic error: "+en+(em?" — "+em:"")+" — opening the recorder so you can still record a voice note.",5600);
+  } else {
+    toast("Opening the recorder — record your voice note and it will be sent here.",4600);
+  }
   openVoicePicker();
 }
-/* Ask for the microphone the modern way first; where that API is
-   missing (older Android WebView in the APK), fall back to the legacy
-   callback API before giving up. Only when EVERY route is refused —
-   e.g. the Muse app view, where the system blocks the mic — does the
-   voice-note picker fallback (voiceFallback) run. In the public
-   version / APK the first route succeeds with the normal microphone
-   permission and the note records right here in the chat. */
+/* ALWAYS ask for the microphone first when the mic is tapped: the
+   modern getUserMedia way, and where that API is missing (older
+   Android WebView in the APK) the legacy callback API. MediaRecorder
+   is checked ONLY after a live mic stream has been obtained — never
+   before — so the tap always asks the mic / shows the permission
+   prompt first. Only when the mic request really fails does the
+   recorder fallback (voiceFallback) run, with the real error shown. */
 function getMicStream(){
   if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia){
     return navigator.mediaDevices.getUserMedia({audio:true});
@@ -1881,20 +1890,46 @@ function getMicStream(){
   if(legacy) return new Promise(function(res,rej){ legacy.call(navigator,{audio:true},res,rej); });
   return Promise.reject(new Error("getUserMedia unavailable"));
 }
+/* Pick the recording format BEFORE constructing MediaRecorder: ask
+   isTypeSupported() in order and use the first format this WebView
+   says it supports; "" means construct with no mimeType at all.
+   Constructing blind (or retrying once with a guessed format) throws
+   NotSupportedError in WebViews whose supported set differs — and
+   that throw used to surface as the same misleading "blocked" toast
+   even though the mic permission had just been granted. */
+function pickRecMime(){
+  if(typeof MediaRecorder==="undefined" || typeof MediaRecorder.isTypeSupported!=="function") return "";
+  var cands=["audio/webm;codecs=opus","audio/webm","audio/mp4"];
+  for(var i=0;i<cands.length;i++){
+    try{ if(MediaRecorder.isTypeSupported(cands[i])) return cands[i]; }catch(e){}
+  }
+  return "";
+}
 function startVoiceRecord(){
   if(voiceRec && voiceRec.state==="recording") return;
-  if(typeof MediaRecorder==="undefined"){
-    voiceFallback();
-    return;
-  }
   getMicStream().then(function(stream){
-    voiceStream=stream; voiceChunks=[]; voiceDiscard=false;
-    try{ voiceRec=new MediaRecorder(stream); }
+    voiceStream=stream;
+    if(typeof MediaRecorder==="undefined"){
+      /* Mic stream is live, but this WebView has no MediaRecorder:
+         release the stream and open the system voice recorder
+         (capture picker) so the user can still record a note. */
+      stopVoiceStream();
+      var noRec=new Error("MediaRecorder is not available in this app view");
+      noRec.name="NotSupportedError";
+      voiceFallback(noRec);
+      return;
+    }
+    voiceChunks=[]; voiceDiscard=false;
+    var recMime=pickRecMime();
+    try{ voiceRec= recMime ? new MediaRecorder(stream,{mimeType:recMime}) : new MediaRecorder(stream); }
     catch(err){
-      /* Some browsers (Safari / older WebView) only accept an explicit
-         audio mimeType — retry once with it before the picker fallback. */
-      try{ voiceRec=new MediaRecorder(stream,{mimeType:"audio/mp4"}); }
-      catch(err2){ stopVoiceStream(); voiceFallback(); return; }
+      /* Even the isTypeSupported pick failed to construct in this
+         WebView — one last attempt with no mimeType, then fall back
+         WITH the real error (never a generic "blocked" message). */
+      if(recMime){
+        try{ voiceRec=new MediaRecorder(stream); }
+        catch(err2){ stopVoiceStream(); voiceFallback(err2); return; }
+      } else { stopVoiceStream(); voiceFallback(err); return; }
     }
     voiceRec.ondataavailable=function(e){ if(e.data&&e.data.size) voiceChunks.push(e.data); };
     voiceRec.onstop=function(){
@@ -1906,13 +1941,20 @@ function startVoiceRecord(){
       pushMedia({type:"voice",url:URL.createObjectURL(blob),dur:dur,t:"Voice note"});
       toast("Voice note sent 🎤");
     };
-    voiceRec.start();
+    try{ voiceRec.start(); }
+    catch(err){
+      /* start() itself can throw in some WebViews (e.g. no usable
+         encoder for the live tracks). Do NOT let that throw escape
+         into the promise .catch as if the mic had been refused:
+         stop the stream and fall back WITH the real error. */
+      stopVoiceStream(); voiceRec=null; voiceFallback(err); return;
+    }
     voiceSecs=0; $("recTime").textContent="0:00";
     $("composerBox").hidden=true; $("sendBtn").hidden=true; $("recBar").hidden=false;
     $("attachPanel").hidden=true; $("emojiPanel").hidden=true;
     voiceTimer=setInterval(function(){ voiceSecs++; $("recTime").textContent=fmtDur(voiceSecs); if(voiceSecs>=300 && voiceRec && voiceRec.state==="recording") voiceRec.stop(); },1000);
-  }).catch(function(){
-    voiceFallback();
+  }).catch(function(err){
+    voiceFallback(err);
   });
 }
 $("recCancel").addEventListener("click",function(){ voiceDiscard=true; if(voiceRec && voiceRec.state==="recording") voiceRec.stop(); else { endRecordingUI(); stopVoiceStream(); } });
