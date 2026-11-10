@@ -809,6 +809,42 @@
   @media (prefers-color-scheme: dark){ .login-card .urdu{ color:#cbb590 !important; } }
   .login-err:not(:empty){ background:#fde8ee; color:#a10032; border:1px solid #f0a9bc; border-radius:12px; padding:.55rem .7rem; line-height:1.45; }
   @media (prefers-color-scheme: dark){ .login-err:not(:empty){ background:#3d1420; color:#ff8fab; border-color:#7a2a3e; } }
+
+  /* ===== FOUR FIXES — header overlap, chat call buttons, Jitsi calls (2026-11-10) =====
+     1) HOME HEADER OVERLAP: the quick-actions card (.dash-grid) used a
+        NEGATIVE top margin (-1.9rem) to ride up over the brown header,
+        and it lives inside the scrolling home view — so its top ~30px
+        was trapped under / clipped by the header and the Live Class /
+        My Chats / Class Notes / Attendance icons looked half-covered.
+        The card now sits fully BELOW the header with clear space, and
+        the header's extra bottom padding (2.6rem, which only existed to
+        hold the overlap) returns to normal. Nothing can cover the row.
+     2) CHAT CALL BUTTONS CLIPPED: the chat header touched the very top
+        edge of the phone screen, so the video / voice buttons sat in
+        the status-bar / notch zone — half-hidden and hard to tap. The
+        header now adds the phone's top safe-area inset (plus a little
+        breathing room) to its top padding, so both buttons sit fully
+        inside the header, visible and tappable. */
+  .dash-head{ padding-bottom:1.1rem; }
+  .dash-grid{ margin:.8rem .8rem 0; }
+  .chat-head{ padding-top:calc(.75rem + env(safe-area-inset-top)); }
+
+  /* ===== JITSI CALL — opened by the chat header video / voice buttons =====
+     A real call inside the app: an embedded Jitsi room, one room per
+     class/chat, so the teacher and every student who taps the call
+     button in the same chat lands in the same call. Video button opens
+     the video room; voice button joins the same room audio-only. */
+  #jitsiOverlay{ padding:0; background:#2a1708; }
+  .jitsi-room{ width:100%; height:100dvh; display:flex; flex-direction:column; background:#2a1708; color:#fff; }
+  .jitsi-head{ display:flex; align-items:center; gap:.6rem; padding:calc(.6rem + env(safe-area-inset-top)) .9rem .6rem; background:#3e2312; border-bottom:3px solid var(--gold); flex-wrap:wrap; }
+  .jitsi-head .rt{ flex:1; min-width:170px; }
+  .jitsi-head .rt b{ display:block; font-size:1rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .jitsi-head .rt span{ font-size:.78rem; color:#e8d5b5; }
+  .jitsi-open{ color:#e9dcc0; font-size:.82rem; font-weight:700; border:1.5px solid rgba(255,255,255,.6); border-radius:999px; padding:.45rem .9rem; text-decoration:none; display:inline-flex; align-items:center; min-height:40px; }
+  .jitsi-end{ background:#d90429; color:#fff; font-weight:800; font-size:.9rem; border-radius:999px; padding:.5rem 1.1rem; min-height:42px; border:1px solid #d90429; }
+  .jitsi-frame{ flex:1; min-height:0; background:#000; }
+  .jitsi-frame iframe{ width:100%; height:100%; border:0; display:block; }
+  .jitsi-note{ font-size:.76rem; color:#e8d5b5; text-align:center; padding:.45rem .9rem calc(.45rem + env(safe-area-inset-bottom)); background:rgba(30,17,6,.55); line-height:1.5; }
 </style>
 </head>
 <body>
@@ -1056,6 +1092,21 @@
       <button class="ctrl" id="ctrlPeople"><span class="cb"><svg viewBox="0 0 24 24"><path d="M16 11a4 4 0 1 0-4-4 4 4 0 0 0 4 4zM8 11a4 4 0 1 0-3.9-4.6A5.9 5.9 0 0 1 6 11.4 4 4 0 0 0 8 11zm8 2c-2.7 0-8 1.3-8 4v3h16v-3c0-2.7-5.3-4-8-4zm-8.2.4C6.4 13.2 2 14.5 2 17v3h4v-3a6.4 6.4 0 0 1 1.8-3.6z"/></svg></span>Attendance</button>
       <button class="ctrl" id="endCallBtn"><span class="cb end"><svg viewBox="0 0 24 24"><path d="M6.6 10.8a15.9 15.9 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.24 11.4 11.4 0 0 0 3.6.6 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.4 11.4 0 0 0 .6 3.6 1 1 0 0 1-.25 1z"/></svg></span>End</button>
     </div>
+  </div>
+</div>
+
+<!-- Jitsi call — opened by the chat header video / voice call buttons.
+     One room per class/chat: the teacher and students who tap call in
+     the same chat all join this same room. -->
+<div class="overlay" id="jitsiOverlay" role="dialog" aria-label="Call">
+  <div class="jitsi-room">
+    <div class="jitsi-head">
+      <div class="rt"><b id="jitsiTitle">Call</b><span id="jitsiSub">Connecting…</span></div>
+      <a class="jitsi-open" id="jitsiOpenLink" href="#" target="_blank" rel="noopener">Open in browser</a>
+      <button class="jitsi-end" id="jitsiEndBtn">End call</button>
+    </div>
+    <div class="jitsi-frame" id="jitsiFrame"></div>
+    <div class="jitsi-note">🔒 Females-only call — everyone here joined from this same class chat in Banat Connect. If the call does not load on this screen, tap “Open in browser” — the same call opens there.</div>
   </div>
 </div>
 
@@ -1555,6 +1606,8 @@ var ICONS={
 function doLogout(){
   clearInterval(state.callTimer); state.callTimer=null; state.callSec=0;
   var co=$("callOverlay"); if(co) co.classList.remove("open");
+  var jo=$("jitsiOverlay"); if(jo) jo.classList.remove("open");
+  var jf=$("jitsiFrame"); if(jf) jf.innerHTML="";
   closeSheet();
   var mm=$("mainMenu"); if(mm) mm.classList.remove("open");
   closeChat();
@@ -1742,15 +1795,36 @@ function voiceFallback(){
   toast("The microphone is blocked in this app view — pick a voice recording and it will be sent as a voice note.",4600);
   openVoicePicker();
 }
+/* Ask for the microphone the modern way first; where that API is
+   missing (older Android WebView in the APK), fall back to the legacy
+   callback API before giving up. Only when EVERY route is refused —
+   e.g. the Muse app view, where the system blocks the mic — does the
+   voice-note picker fallback (voiceFallback) run. In the public
+   version / APK the first route succeeds with the normal microphone
+   permission and the note records right here in the chat. */
+function getMicStream(){
+  if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia){
+    return navigator.mediaDevices.getUserMedia({audio:true});
+  }
+  var legacy=navigator.getUserMedia||navigator.webkitGetUserMedia||navigator.mozGetUserMedia;
+  if(legacy) return new Promise(function(res,rej){ legacy.call(navigator,{audio:true},res,rej); });
+  return Promise.reject(new Error("getUserMedia unavailable"));
+}
 function startVoiceRecord(){
   if(voiceRec && voiceRec.state==="recording") return;
-  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || typeof MediaRecorder==="undefined"){
+  if(typeof MediaRecorder==="undefined"){
     voiceFallback();
     return;
   }
-  navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
+  getMicStream().then(function(stream){
     voiceStream=stream; voiceChunks=[]; voiceDiscard=false;
-    try{ voiceRec=new MediaRecorder(stream); }catch(err){ stopVoiceStream(); voiceFallback(); return; }
+    try{ voiceRec=new MediaRecorder(stream); }
+    catch(err){
+      /* Some browsers (Safari / older WebView) only accept an explicit
+         audio mimeType — retry once with it before the picker fallback. */
+      try{ voiceRec=new MediaRecorder(stream,{mimeType:"audio/mp4"}); }
+      catch(err2){ stopVoiceStream(); voiceFallback(); return; }
+    }
     voiceRec.ondataavailable=function(e){ if(e.data&&e.data.size) voiceChunks.push(e.data); };
     voiceRec.onstop=function(){
       var dur=fmtDur(voiceSecs);
@@ -1858,8 +1932,37 @@ $("icForm").addEventListener("submit",function(e){
 $("icCamBtn").addEventListener("click",function(){ mediaTarget="class"; $("cameraInput").click(); });
 $("icMicBtn").addEventListener("click",function(){ mediaTarget="class"; openVoicePicker(); });
 $("endCallBtn").addEventListener("click",endCall);
-$("voiceBtn").addEventListener("click",function(){ var c=getChat(state.openId); if(c) startCall(c.name,c.color,"voice"); });
-$("videoBtn").addEventListener("click",function(){ var c=getChat(state.openId); if(c) startCall(c.name,c.color,"video"); });
+/* ---- Chat header call buttons — REAL calls via Jitsi, inside the app ----
+   One Jitsi room per class/chat (BanatConnect-<chat id>): the teacher and
+   every student who taps the call button in the same chat lands in the
+   SAME call. The video button opens the room with video; the voice
+   button joins the same room audio-only. Ending the call clears the
+   frame, which hangs up properly. If the embed cannot load in a given
+   view, "Open in browser" in the call header opens the same room. */
+function openJitsiCall(kind){
+  var c=getChat(state.openId); if(!c) return;
+  var roomName="BanatConnect-"+String(c.id||"class").replace(/[^A-Za-z0-9-]/g,"");
+  var isVideo = kind==="video";
+  var url="https://meet.jit.si/"+roomName+"#config.prejoinPageEnabled=false"+(isVideo?"":"&config.startAudioOnly=true&config.startWithVideoMuted=true");
+  $("jitsiTitle").textContent=(isVideo?"Video call — ":"Voice call — ")+c.name;
+  $("jitsiSub").textContent="Everyone in this "+(c.group?"class":"chat")+" who taps the call button joins this same call.";
+  $("jitsiOpenLink").href="https://meet.jit.si/"+roomName;
+  var frame=$("jitsiFrame"); frame.innerHTML="";
+  var ifr=document.createElement("iframe");
+  ifr.src=url;
+  ifr.setAttribute("allow","camera; microphone; fullscreen; display-capture; autoplay; clipboard-write; encrypted-media");
+  ifr.setAttribute("allowfullscreen","");
+  ifr.title=(isVideo?"Video call":"Voice call")+" — "+c.name;
+  frame.appendChild(ifr);
+  $("jitsiOverlay").classList.add("open");
+}
+function closeJitsiCall(){
+  $("jitsiFrame").innerHTML="";
+  $("jitsiOverlay").classList.remove("open");
+}
+$("voiceBtn").addEventListener("click",function(){ openJitsiCall("voice"); });
+$("videoBtn").addEventListener("click",function(){ openJitsiCall("video"); });
+$("jitsiEndBtn").addEventListener("click",closeJitsiCall);
 $("chatMoreBtn").addEventListener("click",function(){ var c=getChat(state.openId); if(c) openSheet(c.name, profileHTML(c)); });
 $("chatWho").addEventListener("click",function(){ var c=getChat(state.openId); if(c) openSheet(c.name, profileHTML(c)); });
 
