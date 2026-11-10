@@ -2742,6 +2742,14 @@ function routeFile(file){
   if(mediaTarget==="class") classSendFile(file); else sendFile(file);
   mediaTarget="chat";
 }
+function sendVoiceFile(file){
+  if(!file) return;
+  var url=URL.createObjectURL(file);
+  if(mediaTarget==="class") pushClassMedia({type:"voice",url:url,dur:"Voice note"});
+  else pushMedia({type:"voice",url:url,dur:"Voice note"});
+  mediaTarget="chat";
+  toast("Voice note sent 🎤");
+}
 function openAttach(kind){
   var inp=$("attachInput");
   mediaTarget="chat";
@@ -2770,7 +2778,7 @@ $("cameraInput").addEventListener("change",function(){
 });
 $("voiceInput").addEventListener("change",function(){
   var fb=$("voiceFallbackBtn"); if(fb) fb.hidden=true;
-  if(this.files&&this.files[0]) routeFile(this.files[0]); else mediaTarget="chat";
+  if(this.files&&this.files[0]) sendVoiceFile(this.files[0]); else mediaTarget="chat";
   this.value="";
 });
 function openVoicePicker(){ var vi=$("voiceInput"); vi.setAttribute("capture",""); vi.click(); }
