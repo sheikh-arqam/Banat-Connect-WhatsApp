@@ -738,8 +738,12 @@
   .pop-panel[hidden]{ display:none !important; }
   .rec-bar[hidden], #composerBox[hidden], #sendBtn[hidden]{ display:none !important; }
   .composer{ flex-wrap:wrap; }
-  .voice-fallback-btn{ flex:1 1 100%; width:100%; min-height:48px; border-radius:999px; background:linear-gradient(180deg,var(--yellow-2,#e9dcc0),var(--yellow,#c19a6b)); color:var(--yellow-ink,#3a2403); border:1.5px solid var(--yellow-edge,#9c7c50); font-weight:800; font-size:.95rem; padding:.65rem 1rem; box-shadow:0 4px 0 #7d6242, 0 10px 18px rgba(90,68,40,.3), inset 0 2px 3px rgba(255,255,255,.9); cursor:pointer; }
+  .voice-fallback-btn{ flex:1 1 100%; width:100%; min-height:48px; border-radius:999px; background:linear-gradient(180deg,var(--yellow-2,#e9dcc0),var(--yellow,#c19a6b)); color:var(--yellow-ink,#3a2403); border:1.5px solid var(--yellow-edge,#9c7c50); font-weight:800; font-size:.95rem; padding:.65rem 1rem; box-shadow:0 4px 0 #7d6242, 0 10px 18px rgba(90,68,40,.3), inset 0 2px 3px rgba(255,255,255,.9); cursor:pointer; display:flex; align-items:center; justify-content:center; text-align:center; box-sizing:border-box; }
   .voice-fallback-btn[hidden]{ display:none !important; }
+  /* New Group: member-select wala gol nishan — khali halqa, select
+     hone par bhara hua teal ✓ (WhatsApp ke group-select jaisa). */
+  .gp-check{ width:26px; height:26px; border-radius:50%; border:2px solid var(--border); color:transparent; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:.9rem; flex:0 0 auto; margin-left:auto; }
+  .gp-check.on{ background:#1f8a70; border-color:#1f8a70; color:#fff; }
   .attach-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:.5rem; }
   .attach-opt{ display:flex; flex-direction:column; align-items:center; gap:.45rem; font-size:.76rem; font-weight:700; color:var(--text); padding:.55rem .1rem; border-radius:14px; min-height:78px; }
   .attach-opt .aic{ width:48px; height:48px; border-radius:50%; display:flex; align-items:center; justify-content:center; }
@@ -827,6 +831,16 @@
   .jitsi-frame{ flex:1; min-height:0; background:#000; }
   .jitsi-frame iframe{ width:100%; height:100%; border:0; display:block; }
   .jitsi-note{ font-size:.76rem; color:#e8d5b5; text-align:center; padding:.45rem .9rem calc(.45rem + env(safe-area-inset-bottom)); background:rgba(30,17,6,.55); line-height:1.5; }
+  /* JOIN HELP BAR — watchdog ke baad khud khulta hai: agar phone par
+     fairmeeting ka join page aa jaye to yahi se call browser mein
+     kholi jati hai (guaranteed rasta). Cream panel, brown text —
+     call screen ki light theme ke saath readable. */
+  .jitsi-help{ background:#fdf6ec; color:#2e1d0f; padding:.8rem .95rem calc(.8rem + env(safe-area-inset-bottom)); border-top:3px solid var(--gold); }
+  .jitsi-help[hidden]{ display:none !important; }
+  .jitsi-help p{ margin:0 0 .6rem; font-size:.86rem; line-height:1.55; }
+  .jitsi-help .jh-row{ display:flex; gap:.55rem; flex-wrap:wrap; }
+  .jitsi-help .jh-btn{ flex:1 1 170px; text-align:center; background:linear-gradient(180deg,#e9dcc0,#c19a6b); color:#3a2403; font-weight:800; font-size:.92rem; border:1.5px solid #9c7c50; border-radius:999px; padding:.6rem .9rem; text-decoration:none; min-height:46px; display:inline-flex; align-items:center; justify-content:center; font-family:inherit; cursor:pointer; }
+  .jitsi-help .jh-btn.ghost{ background:#fff; color:#5a3418; border-color:#d8c3a5; font-weight:700; }
 
   /* ===== LIGHT THEME ALWAYS — on every phone, even in dark mode =====
      All @media (prefers-color-scheme: dark) blocks are REMOVED from this
@@ -1295,10 +1309,23 @@
           <button type="button" class="rec-cancel" id="recCancel" aria-label="Cancel recording"><svg viewBox="0 0 24 24"><path d="M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6zM19 4h-3.5l-1-1h-5l-1 1H5v2h14z"/></svg></button>
           <button type="button" class="rec-send" id="recSend" aria-label="Send voice note"><svg viewBox="0 0 24 24"><path d="M3.4 20.4 21.8 12 3.4 3.6l-.01 6.53L14 12 3.39 13.87z"/></svg></button>
         </div>
-        <button type="button" class="voice-fallback-btn" id="voiceFallbackBtn" hidden>🎤 Tap to open recorder</button>
+        <!-- Recorder fallback aik <label for="voiceInput"> hai, button
+             nahi: label ko dabana browser ka NATIVE kaam hai — wo
+             voiceInput ka picker khud kholta hai, bina kisi JS
+             .click() chain ke. JS se khola gaya picker kai WebViews
+             mein gesture-window se bahar gir kar ignore ho jata tha,
+             is liye ye bar "dead" lagti thi. -->
+        <label class="voice-fallback-btn" id="voiceFallbackBtn" for="voiceInput" hidden>🎤 Tap to open recorder</label>
         <button type="submit" class="send-btn" id="sendBtn" aria-label="Send message, or tap to record a voice note"><svg id="sendIcon" viewBox="0 0 24 24"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.9V21h2v-2.1A7 7 0 0 0 19 12zM5 11H3a9 9 0 0 0 8 8.9V21h2v-1.1A9 9 0 0 0 21 11h-2"/></svg></button>
-        <input type="file" id="attachInput" hidden multiple />
-        <input type="file" id="cameraInput" hidden accept="image/*" capture="environment" />
+        <!-- File inputs display:none (hidden) NAHI hain: APK WebView /
+             kuch mobile browsers display:none wale file input par
+             programmatic .click() ko ignore kar dete hain — isi liye
+             Camera aur Document button "dead" lagte the (na picker,
+             na error). voiceInput wali hi off-screen technique hai:
+             input render hota hai lekin nazar nahi aata, is liye us
+             par click har jagah picker kholta hai. -->
+        <input type="file" id="attachInput" multiple style="position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0" />
+        <input type="file" id="cameraInput" accept="image/*" capture="environment" style="position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0" />
         <input type="file" id="voiceInput" accept="audio/*" capture style="position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0" />
       </form>
     </div>
@@ -1385,7 +1412,14 @@
       <button class="jitsi-end" id="jitsiEndBtn">End call</button>
     </div>
     <div class="jitsi-frame" id="jitsiFrame"></div>
-    <div class="jitsi-note">🔒 Females-only call — everyone here joined from this same class chat in Banat Connect. The call joins right here inside the app.</div>
+    <div class="jitsi-help" id="jitsiHelp" hidden>
+      <p><b>Call connect nahi hui?</b> Agar screen par "How do you want to join this meeting?" wala page dikh raha hai, to neeche wala button dabayein — call Chrome (browser) mein khul jayegi, wahan <b>Join in browser</b> dabayein, seedha join ho jayega.</p>
+      <div class="jh-row">
+        <a class="jh-btn" id="jitsiHelpLink" href="#" target="_blank" rel="noopener">Browser mein join karein ↗</a>
+        <button class="jh-btn ghost" id="jitsiRetryBtn" type="button">Embed dobara try karein</button>
+      </div>
+    </div>
+    <div class="jitsi-note">🔒 Females-only call — everyone here joined from this same class chat in Banat Connect. Call yahin app ke andar join hoti hai; agar join page aa jaye to upar "Open in browser" dabayein.</div>
   </div>
 </div>
 
@@ -1556,6 +1590,13 @@ var SAMPLE_PDF="data:application/pdf;base64,JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAv
 var $=function(id){ return document.getElementById(id); };
 function esc(s){ return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];}); }
 function initials(name){ var p=name.replace(/[^A-Za-z\u0600-\u06FF ]/g,"").trim().split(/\s+/); return ((p[0]||"B")[0]+((p[1]||"")[0]||"")).toUpperCase(); }
+/* Chat list ki tarteeb WhatsApp jaisi hai: har chat ka _ts us ke
+   AAKHRI message ka waqt (ms) hai — jis chat mein naya message aaye
+   (bheja jaye ya receive ho) wo foran sab se upar aa jati hai, dono
+   taraf. Demo chats ko shuru mein un ki maujooda tarteeb ke hisab
+   se ghut-te hue _ts mile hain taake pehli render par list waisi hi
+   dikhe jaisi pehle thi. */
+CHATS.forEach(function(c,i){ c._ts=Date.now()-3600000-(i*60000); });
 function lastMsg(c){ return c.msgs[c.msgs.length-1] || {f:"them",t:"",time:c.time||""}; }
 function ticks(s){ if(s==="read") return '<span class="tick read">✓✓</span>'; if(s==="delivered") return '<span class="tick sent">✓✓</span>'; return '<span class="tick sent">✓</span>'; }
 var toastTimer=null, toastTapAction=null;
@@ -1654,7 +1695,10 @@ function renderChats(){
     if(q && c.name.toLowerCase().indexOf(q)<0 && lastMsg(c).t.toLowerCase().indexOf(q)<0) return false;
     return true;
   });
-  items.sort(function(a,b){ return (b.pinned?1:0)-(a.pinned?1:0); });
+  items.sort(function(a,b){
+    var p=(b.pinned?1:0)-(a.pinned?1:0); if(p) return p; /* pinned hamesha sab se upar */
+    return (b._ts||0)-(a._ts||0); /* phir sab se taza chat upar */
+  });
   if(!items.length){ list.innerHTML='<div class="empty-note">No chats found.<br>Try a different search or filter.</div>'; return; }
   list.innerHTML=items.map(function(c){
     var lm=lastMsg(c);
@@ -1832,6 +1876,7 @@ function afterSend(c){
   setTimeout(function(){
     var pool=c.replies||["Jazakillahu khairan 🌸"];
     c.msgs.push({f:"them",who:c.group?"Maryam S.":undefined,wc:"#b05a7a",t:pool[Math.floor(Math.random()*pool.length)],time:nowTime()});
+    c._ts=Date.now();
     if(state.openId===c.id) renderMsgs();
     else if(state.settings.notifications) toast("New message in "+c.name);
     renderChats();
@@ -1840,7 +1885,7 @@ function afterSend(c){
 function pushMedia(msg){
   var c=getChat(state.openId); if(!c) return;
   msg.f="me"; msg.time=nowTime(); msg.s="sent";
-  c.msgs.push(msg); c.time="now";
+  c.msgs.push(msg); c.time="now"; c._ts=Date.now();
   renderMsgs(); renderChats();
   setTimeout(function(){ var lm=lastMsg(c); if(lm.f==="me"){ lm.s="delivered"; if(state.openId===c.id) renderMsgs(); } },700);
   setTimeout(function(){ var lm=lastMsg(c); if(lm.f==="me"){ lm.s="read"; if(state.openId===c.id) renderMsgs(); } },1600);
@@ -1874,7 +1919,7 @@ function sendMessage(text){
   var c=getChat(state.openId); if(!c||!text) return;
   if(c.db){ dbSendText(c,text); return; } /* DB chat: asal insert, koi simulated reply/typing nahi */
   c.msgs.push({f:"me",t:text,time:nowTime(),s:"sent"});
-  c.time="now";
+  c.time="now"; c._ts=Date.now();
   renderMsgs(); renderChats();
   setTimeout(function(){ var lm=lastMsg(c); if(lm.f==="me"){ lm.s="delivered"; renderMsgs(); } },700);
   setTimeout(function(){ var lm=lastMsg(c); if(lm.f==="me"){ lm.s="read"; renderMsgs(); } },1600);
@@ -1886,6 +1931,7 @@ function sendMessage(text){
   setTimeout(function(){
     var pool=c.replies||["Jazakillahu khairan 🌸"];
     c.msgs.push({f:"them",who:c.group?"Maryam S.":undefined,wc:"#b05a7a",t:pool[Math.floor(Math.random()*pool.length)],time:nowTime()});
+    c._ts=Date.now();
     if(state.openId===c.id){ $("chatStatus").textContent=c.group?(c.sub||"group"):(c.online?"online":"last seen recently"); renderMsgs(); }
     else if(state.settings.notifications) toast("New message in "+c.name);
     renderChats();
@@ -2212,7 +2258,7 @@ async function dbLoadClassMessages(c){
       var m=await dbMapRow(row,names);
       c.msgs.push(m); dbMarkRendered(c,row.id);
     }
-    if(r.data.length) c.time=dbFmtTime(r.data[r.data.length-1].created_at);
+    if(r.data.length){ c.time=dbFmtTime(r.data[r.data.length-1].created_at); c._ts=new Date(r.data[r.data.length-1].created_at).getTime()||c._ts; }
   }catch(e){}
 }
 async function dbLoadPeerMessages(c){
@@ -2230,7 +2276,53 @@ async function dbLoadPeerMessages(c){
       var m=await dbMapRow(row,names);
       c.msgs.push(m); dbMarkRendered(c,row.id);
     }
+    if(r.data.length){ var lastP=r.data[r.data.length-1]; c.time=dbFmtTime(lastP.created_at); c._ts=new Date(lastP.created_at).getTime()||c._ts; }
   }catch(e){}
+}
+/* Aik asal 1:1 (peer) chat ka chat-object — number lookup, login-load
+   aur realtime teeno yahi istemal karte hain taake chat hamesha aik
+   hi shakal mein bane aur list mein rahe. */
+function dbEnsurePeerChat(peerId, peerName){
+  var c=dbChatByPeer(peerId);
+  if(c){ if(peerName && (!c.name || c.name==="Banat Connect user")) c.name=peerName; return c; }
+  c={ id:"u_"+peerId.slice(0,8), name:peerName||"Banat Connect user", sub:"", color:2, group:false, unread:0, time:"", msgs:[], replies:[], db:true, dbPeerId:peerId };
+  c._dbIds=new Set();
+  CHATS.unshift(c);
+  return c;
+}
+/* LOGIN PAR SAARI ASAL 1:1 CHATS WAPAS LAO.
+   Pehle ye step tha hi nahi: peer chats sirf number lookup se banti
+   theen aur sirf memory mein rehti theen — app band karke dobara
+   kholne (ya logout/login) par wo list se ghaib ho jati theen, sirf
+   demo chats reh jati theen, aur doosri taraf bheja gaya message
+   kabhi nazar hi nahi aata tha. Ab login par messages table se wo
+   saare log nikal aate hain jin se kabhi 1:1 baat hui ho (SELECT
+   policy sender/recipient dono ko apne messages parhne deti hai),
+   har aik ki chat list mein banti hai aur us ke messages load hote
+   hain — chat ab hamesha rehti hai, har device par. */
+async function dbLoadPeerChats(){
+  if(!DB_ON || !state.user.id) return;
+  var me=state.user.id;
+  try{
+    var r=await sb.from("messages").select("sender_id,recipient_id,created_at")
+      .is("class_id",null)
+      .or("sender_id.eq."+me+",recipient_id.eq."+me)
+      .order("created_at",{ascending:false}).limit(300);
+    if(r.error || !r.data) return;
+    var peers=[], seen={};
+    r.data.forEach(function(row){
+      var pid = row.sender_id===me ? row.recipient_id : row.sender_id;
+      if(!pid || seen[pid]) return;
+      seen[pid]=1; peers.push(pid);
+    });
+    if(!peers.length) return;
+    var names=await dbNamesFor(peers);
+    for(var i=0;i<peers.length;i++){
+      var pc=dbEnsurePeerChat(peers[i], names[peers[i]]);
+      await dbLoadPeerMessages(pc);
+    }
+    renderChats();
+  }catch(e){ if(window.console&&console.warn) console.warn("dbLoadPeerChats error:",e); }
 }
 function dbMergeClass(cls, teacherName){
   var found=null;
@@ -2276,10 +2368,27 @@ async function dbLoadAndMergeClasses(){
   if(!DB_ON || !state.user.id) return;
   var cr=await sb.from("classes").select("*");
   if(cr.error || !cr.data) return;
-  try{ await sb.from("class_members").select("class_id").eq("user_id",state.user.id); }catch(e){}
-  var tids=[]; cr.data.forEach(function(cl){ if(tids.indexOf(cl.teacher_id)<0) tids.push(cl.teacher_id); });
+  /* Sirf WOHI classes DB chat ke tor par merge hoti hain jin ki main
+     asal MEMBER hoon (ya jin ki teacher main khud hoon). Pehle HAR
+     class merge ho jati thi — class_members wali query chalti thi
+     lekin us ka result phenk diya jata tha. Nateeja: Seerah Study
+     Circle jaisi class, jis ki student member hi nahi, front par DB
+     chat ban jati thi; wahan send karne par database ka membership
+     check insert rok deta tha aur sirf "Message nahi bheja ja saka"
+     toast aata tha. Ab gair-member classes front par aam (local)
+     group ki tarah rehti hain — un mein send kaam karta hai — aur
+     asal DB class chat sirf asal members ko milti hai, bilkul gated
+     design ke mutabiq. Member bante hi (approval par) yehi function
+     dobara chalta hai aur class DB chat ban jati hai. */
+  var myClassIds={};
+  try{
+    var mr0=await sb.from("class_members").select("class_id").eq("user_id",state.user.id);
+    if(mr0.data) mr0.data.forEach(function(m){ myClassIds[m.class_id]=true; });
+  }catch(e){}
+  var visible=cr.data.filter(function(cl){ return cl.teacher_id===state.user.id || myClassIds[cl.id]; });
+  var tids=[]; visible.forEach(function(cl){ if(tids.indexOf(cl.teacher_id)<0) tids.push(cl.teacher_id); });
   var names=await dbNamesFor(tids);
-  var merged=cr.data.map(function(cl){ return dbMergeClass(cl, names[cl.teacher_id]||""); });
+  var merged=visible.map(function(cl){ return dbMergeClass(cl, names[cl.teacher_id]||""); });
   for(var i=0;i<merged.length;i++){ await dbLoadClassMessages(merged[i]); }
   /* Attendance cache: pehli DB class (merged demo Tajweed ko tarjeeh) */
   var attChat=null;
@@ -2305,6 +2414,7 @@ async function dbAfterLogin(){
   if(!DB_ON || !state.user.id) return;
   try{ if(isTeacher()) await dbSeedDemoClasses(); }catch(e){}
   try{ await dbLoadAndMergeClasses(); }catch(e){}
+  try{ await dbLoadPeerChats(); }catch(e){}
   try{ await dbLoadMyPhone(); }catch(e){}
   try{ await dbLoadMyJoinRequests(); }catch(e){}
   try{ if(isTeacher()) await dbLoadJoinRequests(); }catch(e){}
@@ -2329,13 +2439,25 @@ async function dbOnMessageInsert(row){
   if(!row || !state.user.id) return;
   var c=null;
   if(row.class_id) c=dbChatByClassId(row.class_id);
-  else if(row.recipient_id===state.user.id) c=dbChatByPeer(row.sender_id);
-  else if(row.sender_id===state.user.id) c=dbChatByPeer(row.recipient_id);
+  else {
+    /* 1:1 message: chat list mein na ho to YAHEEN bana do. Pehle
+       chat na milne par message khamoshi se phenk diya jata tha —
+       isi liye doosri taraf (masalan Teacher ko) na chat nazar aati
+       thi, na message, aur koi error bhi nahi milta tha. */
+    var pid = row.recipient_id===state.user.id ? row.sender_id : row.recipient_id;
+    if(pid){
+      c=dbChatByPeer(pid);
+      if(!c){
+        var pn=await dbNamesFor([pid]);
+        c=dbEnsurePeerChat(pid, pn[pid]);
+      }
+    }
+  }
   if(!c) return;
   if(c._dbIds && c._dbIds.has(row.id)) return; /* apna bheja hua, pehle se rendered */
   var names=await dbNamesFor([row.sender_id]);
   var m=await dbMapRow(row,names);
-  c.msgs.push(m); dbMarkRendered(c,row.id); c.time=dbFmtTime(row.created_at);
+  c.msgs.push(m); dbMarkRendered(c,row.id); c.time=dbFmtTime(row.created_at); c._ts=new Date(row.created_at).getTime()||Date.now();
   if(state.openId===c.id){ renderMsgs(); }
   else{
     if(row.sender_id!==state.user.id){ c.unread=(c.unread||0)+1; if(state.settings.notifications) toast("New message in "+c.name); }
@@ -2366,7 +2488,7 @@ async function dbSendText(c, text){
     if(r.error) throw r.error;
     var m={f:"me",t:text,time:nowTime(),s:"read",_dbId:payload.id};
     dbMarkRendered(c,payload.id);
-    c.msgs.push(m); c.time="now";
+    c.msgs.push(m); c.time="now"; c._ts=Date.now();
     if(state.openId===c.id) renderMsgs();
     renderChats();
   }catch(e){
@@ -2410,7 +2532,7 @@ async function dbSendMediaFile(c, fileOrBlob, kind, localUrl, fileName, durText)
     if(kind==="voice"){ m.type="voice"; m.dur=durText||"Voice note"; m.t="Voice note"; }
     else if(kind==="image"){ m.type="image"; m.t=""; }
     else { m.type="file"; m.fileName=fileName; m.ext=((fileName||"FILE").split(".").pop()||"FILE").toUpperCase().slice(0,4); m.doc=fmtBytes(fileOrBlob.size||0); m.t=fileName; }
-    c.msgs.push(m); c.time="now";
+    c.msgs.push(m); c.time="now"; c._ts=Date.now();
     if(state.openId===c.id) renderMsgs();
     renderChats();
   }catch(e){
@@ -2826,6 +2948,39 @@ function newChatHTML(){
   });
   return h;
 }
+/* ================= NEW GROUP (do-step asal flow) =================
+   Pehle "New group" ke teeno darwaze (dashboard button, quick action,
+   main menu) ghalat taar se jude thay: wo New CHAT wala picker kholte
+   thay, jahan contact dabane se 1:1 chat khul jati thi — na member
+   selection hoti thi, na group-name step, na group banta tha.
+   Ab asal flow hai: STEP 1 — contacts par tap karke members select
+   karo (✓ lagta hai, dobara tap = deselect); STEP 2 — group ka naam
+   likho; Create dabane par group chat list mein ban jata hai aur
+   khul jata hai. General groups is device par bante hain (classes ki
+   tarah database groups ka koi table nahi hai) — members wahi log
+   hain jo aap ki chat list mein pehle se hain, asal peer contacts
+   sameet. */
+var groupPick={}; /* chatId -> true (selected members) */
+function openNewGroup(){ groupPick={}; openSheet("New group", newGroupHTML()); }
+function newGroupHTML(){
+  var n=Object.keys(groupPick).length;
+  var h='<div class="empty-note" style="padding:1rem 1.1rem .3rem;text-align:left">Step 1 of 2 — group ke members chunein. Jinhen select karein gi un ke saamne ✓ aayega; dobara dabane se select khatam ho jayega.<br><b>'+n+' selected</b></div>';
+  CHATS.filter(function(c){ return !c.group; }).forEach(function(c){
+    var on=!!groupPick[c.id];
+    h+='<button class="set-row" data-grouppick="'+c.id+'"><span class="avatar md" style="background:'+avColor(c.color)+'">'+esc(initials(c.name))+'</span><span class="tt"><b>'+esc(c.name)+'</b><span>'+(c.db?"Banat Connect user":"Banat Connect student")+'</span></span><span class="gp-check'+(on?" on":"")+'" aria-hidden="true">✓</span></button>';
+  });
+  h+='<div class="sheet-pad"><button class="big-btn" data-act="groupnext">Next — group ka naam</button></div>';
+  return h;
+}
+function groupNameHTML(){
+  var names=Object.keys(groupPick).map(function(id){ var cc=getChat(id); return cc?cc.name:null; }).filter(Boolean);
+  return '<div class="sheet-pad">'
+  +'<p style="font-size:.93rem;line-height:1.55;color:var(--muted);margin:.6rem 0 0">Step 2 of 2 — <b>'+names.length+' member'+(names.length===1?"":"s")+'</b>: '+esc(names.join(", "))+'</p>'
+  +'<label class="fld-label" for="groupName">Group name</label>'
+  +'<input class="fld" id="groupName" type="text" placeholder="e.g. Weekend Hifz Circle" />'
+  +'<button class="big-btn" data-act="creategroupfinal">Create group</button>'
+  +'</div>';
+}
 function profileHTML(c){
   return '<div style="text-align:center;padding:1.4rem 1rem .6rem"><span class="avatar xl" style="background:'+avColor(c.color)+';margin:0 auto">'+esc(initials(c.name))+'</span>'
   +'<div style="font-size:1.3rem;font-weight:600;margin-top:.7rem">'+esc(c.name)+'</div>'
@@ -2874,7 +3029,7 @@ function accountDetailHTML(){
   return '<div class="text-row" style="border-top:none"><b>'+esc(state.user.name)+'</b><span>'+esc(state.user.role)+' at Banat Institute</span></div>'
   +'<div class="text-row"><b>Login email</b><span>'+esc(state.user.email||"Logged in with email")+'</span></div>'
   +'<div class="text-row"><b>Phone number</b><span>Optional — agar aap apne profile mein number save karein to wo sirf aap ko dikhta hai; doosre aap ko number se dhoondh sakte hain lekin number kabhi kisi ko nazar nahi aata.</span></div>'
-  +'<div class="text-row"><b>Account type</b><span>'+esc(state.user.role)+' account (demo build — classes and chats are demo data on this device).</span></div>'
+  +'<div class="text-row"><b>Account type</b><span>'+esc(state.user.role)+' account'+(DB_ON?' — Banat Connect database se connected: aap ki asal chats, classes aur messages har device par login karte hi wapas aa jate hain. Sirf sample (demo) chats is device par rehti hain.':' (demo build — classes and chats are demo data on this device).')+'</span></div>'
   +'<div class="sheet-pad"><button class="ghost-btn" data-act="profile-edit">Edit profile</button>'
   +'<button class="set-row logout-row" data-act="logout" style="margin-top:.4rem"><span class="ic">'+ICONS.logout+'</span><span class="tt"><b>Log out</b><span>Log out of this account</span></span></button></div>';
 }
@@ -2892,10 +3047,14 @@ function storageHTML(){
   var bytes=new Blob([dataStr]).size;
   var msgCount=0, mediaCount=0;
   CHATS.forEach(function(c){ c.msgs.forEach(function(m){ msgCount++; if(m.type==="file"||m.type==="image"||m.type==="voice"||m.doc) mediaCount++; }); });
-  return '<div class="text-row" style="border-top:none"><b>Demo data on this device</b><span>'+fmtBytes(bytes)+' — everything in this demo (chats, classes, statuses, calls) lives in the app itself; nothing is uploaded anywhere.</span></div>'
+  return (DB_ON
+    ? '<div class="text-row" style="border-top:none"><b>Database se synced</b><span>Aap ki asal chats, classes aur messages Banat Connect database mein mehfooz hain — app band karke dobara kholein ya kisi aur device par login karein, sab wapas aa jata hai. Neeche wala sample (demo) data ('+fmtBytes(bytes)+') sirf is app ke andar hai.</span></div>'
+    : '<div class="text-row" style="border-top:none"><b>Demo data on this device</b><span>'+fmtBytes(bytes)+' — everything in this demo (chats, classes, statuses, calls) lives in the app itself; nothing is uploaded anywhere.</span></div>')
   +'<div class="text-row"><b>Chats &amp; classes</b><span>'+CHATS.length+' chats • '+msgCount+' messages</span></div>'
   +'<div class="text-row"><b>Notes, PDFs &amp; media</b><span>'+mediaCount+' files shared in chats (see Class Notes)</span></div>'
-  +'<div class="text-row"><b>Voice notes &amp; photos you send</b><span>Kept only for this session, in this tab — they are not saved to any server.</span></div>';
+  +(DB_ON
+    ? '<div class="text-row"><b>Voice notes &amp; photos you send</b><span>Asal chat mein bheji gayi voice notes aur files database storage mein upload hoti hain taake doosre shakhs ko bhi milein; demo chats mein wo sirf is session ke liye rehti hain.</span></div>'
+    : '<div class="text-row"><b>Voice notes &amp; photos you send</b><span>Kept only for this session, in this tab — they are not saved to any server.</span></div>');
 }
 function helpHTML(){
   return '<div class="text-row" style="border-top:none"><b>How do I join a class?</b><span>Classes are separate from the general app: open the My Classes tab at the bottom (or More → My Classes), write your class code and send a join request. Your institute’s teacher approves it — that verification happens only once; after that the class is always yours, and you can join its live class from the class card there. You join with camera off and mic muted — raise your hand to speak.</span></div>'
@@ -3295,6 +3454,11 @@ function wireSheet(){
     toast(sw.getAttribute("aria-label")+": "+(!on?"On":"Off"));
   }); });
   body.querySelectorAll("[data-openchat]").forEach(function(b){ b.addEventListener("click",function(){ closeSheet(); switchView("chats"); openChat(b.getAttribute("data-openchat")); }); });
+  body.querySelectorAll("[data-grouppick]").forEach(function(b){ b.addEventListener("click",function(){
+    var id=b.getAttribute("data-grouppick");
+    if(groupPick[id]) delete groupPick[id]; else groupPick[id]=true;
+    refreshSheet(newGroupHTML());
+  }); });
   body.querySelectorAll("[data-newcall]").forEach(function(b){ b.addEventListener("click",function(){
     var nc=getChat(b.getAttribute("data-newcall")); var tp=b.getAttribute("data-calltype")==="video"?"video":"voice";
     closeSheet();
@@ -3512,6 +3676,25 @@ function wireSheet(){
       refreshSheet(attendanceHTML());
       var pc=CLASS_PEOPLE.filter(function(p){ return attState.present[p.name]; }).length;
       toast("Attendance marked — "+pc+" present, "+(CLASS_PEOPLE.length-pc)+" absent. Saved for today's class.");
+    }
+    else if(act==="groupnext"){
+      if(!Object.keys(groupPick).length){ toast("Pehle kam az kam aik member select karein, phir Next dabayein."); return; }
+      openSheet("New group", groupNameHTML());
+    }
+    else if(act==="creategroupfinal"){
+      var gn=($("groupName")?$("groupName").value:"").trim();
+      if(gn.length<3){ toast("Pehle group ka naam likhein, phir Create dabayein."); return; }
+      var gMembers=Object.keys(groupPick).map(function(id){ var cc=getChat(id); return cc?cc.name:null; }).filter(Boolean);
+      if(!gMembers.length){ toast("Members select nahi hue — wapas ja kar members chunein."); return; }
+      var ggid="grp"+Date.now();
+      var gcol=Math.floor(Math.random()*COLORS.length);
+      CHATS.unshift({ id:ggid, name:gn, sub:"Group • "+(gMembers.length+1)+" members", color:gcol, group:true, unread:0, time:"now", _ts:Date.now(),
+        msgs:[{f:"them",t:"Group ban gaya 🌸 "+state.user.name+" ne ye group banaya aur "+gMembers.join(", ")+" ko shamil kiya. Assalamu alaikum everyone!",time:nowTime()}],
+        replies:["Assalamu alaikum everyone 🌸","Jazakillahu khairan for adding me 🌸"] });
+      groupPick={};
+      renderChats(); renderCommunities();
+      closeSheet(); switchView("chats"); openChat(ggid);
+      toast("Group created: "+gn);
     }
     else if(act==="creategroupgo"){
       var cn=($("commName")?$("commName").value:"").trim();
@@ -3743,7 +3926,14 @@ $("voiceInput").addEventListener("change",function(){
   this.value="";
 });
 function openVoicePicker(){ var vi=$("voiceInput"); vi.setAttribute("capture",""); vi.click(); }
-$("voiceFallbackBtn").addEventListener("click",function(){ openVoicePicker(); });
+/* voiceFallbackBtn par JS click listener NAHI hai — wo aik
+   <label for="voiceInput"> hai, is liye use dabana browser khud
+   recorder picker kholta hai (native user gesture). Pehle wo aik
+   button tha jis ka listener JS se input.click() chalata tha; kai
+   WebViews mein wo programmatic click gesture-window se bahar gir
+   kar ignore ho jata tha — bar nazar aati thi lekin dabane par kuch
+   nahi hota tha. toastTap wala rasta (toast dabana) openVoicePicker
+   ko hi istemal karta hai, kyunke toast ka tap bhi asal tap hai. */
 /* ---- Camera: the tap itself opens the device camera (capture picker).
    The old in-page live camera first asked the browser for camera access;
    inside the app view that request is refused before the tap counts, so
@@ -3824,6 +4014,7 @@ function voiceFallback(err){
      Android may ignore it; the toast is therefore TAPPABLE, and
      tapping it opens the recorder with a real user tap. */
   mediaTarget = voiceTarget==="class" ? "class" : "chat";
+  $("sendBtn").classList.remove("recording");
   var fbBtn=$("voiceFallbackBtn"); if(fbBtn) fbBtn.hidden=false;
   if(err){
     var en=(err&&err.name)?err.name:"Error";
@@ -3959,6 +4150,16 @@ function startVoiceRecord(target){
   var jf=$("jitsiFrame");
   if(jf && jf.querySelector("iframe")) closeJitsiCall();
   voicePending=true;
+  /* Fori feedback: mic ki request browser ke paas jati hai aur us ka
+     jawab (ijazat / error / rec bar) aane mein waqt lag sakta hai —
+     khaas tor par NotAllowedError wale aik retry ki wajah se. Pehle
+     is beech tap par SCREEN PAR KUCH NAHI BADALTA tha, is liye plain
+     tap bilkul dead lagta tha. Ab send button foran recording halat
+     mein aa jata hai aur aik chhota paigham bhi dikhta hai; rec bar
+     khulte hi (beginVoiceRecording) ya fallback par ye halat khatam
+     ho jati hai. */
+  $("sendBtn").classList.add("recording");
+  toast("🎤 Mic khola ja raha hai — ijazat mange to Allow dabayein",1800);
   var teardownWait = jitsiClosedAt ? Math.max(0, 2000 - (Date.now() - jitsiClosedAt)) : 0;
   var attemptMic=function(){
     requestMicStream().then(function(stream){
@@ -4000,7 +4201,7 @@ $("icRecCancel").addEventListener("click",cancelRecording);
 $("icRecSend").addEventListener("click",sendRecording);
 /* ===== Meezan-style dashboard wiring ===== */
 $("dashNewChat").addEventListener("click",function(){ openSheet("New chat", newChatHTML()); });
-$("dashNewGroup").addEventListener("click",function(){ openSheet("New group", newChatHTML()); });
+$("dashNewGroup").addEventListener("click",function(){ openNewGroup(); });
 $("dashPill").addEventListener("click",function(){ openSheet("Account", accountMenuHTML()); });
 document.querySelectorAll("[data-dash]").forEach(function(b){ b.addEventListener("click",function(){
   var k=b.getAttribute("data-dash");
@@ -4008,7 +4209,7 @@ document.querySelectorAll("[data-dash]").forEach(function(b){ b.addEventListener
      contacts) — classes ka koi shortcut yahan nahi; wo More →
      My Classes ke gated area mein hain. */
   if(k==="newchat") openSheet("New chat", newChatHTML());
-  else if(k==="newgroup") openSheet("New group", newChatHTML());
+  else if(k==="newgroup") openNewGroup();
   else if(k==="contacts") openSheet("Contacts", newChatHTML());
   else if(k==="calls") switchView("calls");
 }); });
@@ -4026,7 +4227,7 @@ $("mainMenu").querySelectorAll("[data-menu]").forEach(function(b){ b.addEventLis
   var k=b.getAttribute("data-menu");
   if(k==="settings") openSheet("Settings", settingsHTML());
   else if(k==="logout") doLogout();
-  else if(k==="newgroup") openSheet("New group", newChatHTML());
+  else if(k==="newgroup") openNewGroup();
   else if(k==="classes"){ openSheet("My Classes", classesHTML()); if(isTeacher()) dbLoadJoinRequests(); }
   else if(k==="starred") openSheet("Starred messages", starredHTML());
   else if(k==="broadcast") openSheet("New broadcast", broadcastHTML());
@@ -4108,17 +4309,36 @@ $("roomBack").addEventListener("click",function(){ endCall(); });
    button joins the same room audio-only. Ending the call clears the
    frame, which hangs up properly. If the embed cannot load in a given
    view, "Open in browser" in the call header opens the same room. */
-/* The call runs through the Jitsi IFrame API (external_api.js from
-   fairmeeting.net), NOT a plain <iframe src>: the plain URL fragment
-   does not set the caller's display name reliably — the first
-   participant showed up as the default "fairmeeter" and a name
-   prompt appeared late. The IFrame API takes userInfo.displayName
-   in its constructor, and the 'videoConferenceJoined' handler below
-   re-sends it with executeCommand, so the logged-in user's name is
-   there from the first join with no manual prompt. If the API
-   script cannot load, openJitsiCall falls back to the plain iframe
-   URL so the call still works. */
-var jitsiApi=null, jitsiCallSeq=0, jitsiApiLoading=false, jitsiApiWaiters=[];
+/* CALL KA ASAL RASTA — plain iframe, aur phone ke liye browser
+   fallback (2026-11-11 ki tahqeeq ke baad):
+   Pehle call Jitsi IFrame API (external_api.js) se chalti thi aur
+   disableDeepLinking API ke configOverwrite se diya jata tha.
+   Arqam ke phone par APK fresh REINSTALL ke baad bhi wahi
+   "How do you want to join this meeting?" wala page aata raha —
+   is se do cheezein saabit hui:
+   1) Masla cache ka NAHI tha (fresh install par bhi page aaya) aur
+      fragment strip ka bhi nahi (fragment hamesha client-side rehta
+      hai; live HTML mein disableDeepLinking maujood tha, desktop
+      par wahi URL seedha join karta hai).
+   2) fairmeeting.net ka mobile interstitial page phone ke WebView
+      user-agent par API wale config ko nahi maan raha — warna
+      conference join ho jati aur page kabhi na dikhta.
+   Is liye ab:
+   - Call PLAIN IFRAME se foran khulti hai (koi script load ka
+     intezar nahi), URL ke fragment mein disableDeepLinking +
+     prejoin off + user ka naam — host flag maan le to call app
+     ke andar hi seedha join ho jati hai.
+   - JOIN WATCHDOG: iframe ke andar join hua ya nahi, bahar se koi
+     signal nahi milta; is liye 10 second baad madad wala bar khud
+     khul jata hai (sirf tab, jab call screen abhi bhi khuli ho).
+   - GUARANTEED RASTA: "Browser mein join karein" — wahi room
+     Chrome/browser mein khulta hai, jahan Jitsi apna "Join in
+     browser" button deta hai aur call har phone par chalti hai.
+     Header wala "Open in browser" bhi yahi link hai. */
+var jitsiApi=null, jitsiCallSeq=0, jitsiApiLoading=false, jitsiApiWaiters=[], jitsiWatchdog=null, jitsiRetryFn=null;
+/* loadJitsiApi ab call ke raste mein NAHI hai (purana API embed
+   hata diya gaya hai) — sirf is liye rakha hai ke koi purana
+   reference toot na jaye. */
 function loadJitsiApi(cb){
   if(window.JitsiMeetExternalAPI){ cb(true); return; }
   jitsiApiWaiters.push(cb);
@@ -4141,38 +4361,29 @@ function openJitsiCall(kind,chat){
   stopActiveVoiceCapture();
   var roomName="BanatConnect-"+String(c.id||"class").replace(/[^A-Za-z0-9-]/g,"");
   var isVideo = kind==="video";
-  /* Host: fairmeeting.net — a free community Jitsi instance that lets
-     anyone create/join a room anonymously, with no login and no
-     moderator lobby (the previous host required the room creator to
-     log in with Google/GitHub/Facebook, which blocked every second
-     joiner in its lobby).
-     Same room name per chat, so everyone tapping Call in this chat —
-     now or later — lands in the SAME room. */
-  /* config.disableDeepLinking=true LAZMI hai: is ke baghair phone
-     (mobile browser / APK WebView) par Jitsi conference ki bajaye
-     apna "How do you want to join this meeting?" wala beech ka
-     page dikha deta hai (Join in app / Download / Join in browser)
-     — desktop par ye page nahi aata, is liye masla sirf phone par
-     nazar aata tha. Ye flag us page ko band karke call ko app ke
-     andar seedha join kar deta hai. */
+  /* Host: fairmeeting.net — free community Jitsi instance, anonymous
+     join, no login, no moderator lobby. Same room name per chat, so
+     everyone tapping Call in this chat lands in the SAME room.
+     Fragment mein teen cheezein: prejoin page off, deep-link
+     interstitial off, aur user ka display name (taake pehla joiner
+     default "fairmeeter" na dikhe). */
   var frag="config.prejoinConfig.enabled=false&config.disableDeepLinking=true&userInfo.displayName="+encodeURIComponent((state.user&&state.user.name)||"");
   if(!isVideo) frag+="&config.startAudioOnly=true&config.startWithVideoMuted=true";
   var url="https://fairmeeting.net/"+roomName+"#"+frag;
   $("jitsiTitle").textContent=(isVideo?"Video call — ":"Voice call — ")+c.name;
-  $("jitsiSub").textContent="Everyone in this "+(c.group?"class":"chat")+" who taps the call button joins this same call.";
-  /* "Open in browser" opens the SAME room URL, config fragment
-     included — a bare room URL would stop at the prejoin page. */
+  $("jitsiSub").textContent="Call join ho rahi hai — thoda intezar karein…";
+  /* Header ka "Open in browser" aur neeche wale madad bar ka button
+     dono WAHI room URL kholte hain, fragment ke saath. */
   $("jitsiOpenLink").href=url;
+  var helpLink=$("jitsiHelpLink"); if(helpLink) helpLink.href=url;
+  var help=$("jitsiHelp"); if(help) help.hidden=true;
   var frame=$("jitsiFrame"); frame.innerHTML="";
   if(jitsiApi){ try{ jitsiApi.dispose(); }catch(e){} jitsiApi=null; }
   $("jitsiOverlay").classList.add("open");
   navPush({layer:"jitsi"});
-  /* The API script loads async: if this call was already closed (or
-     replaced by another call) by the time it arrives, do nothing. */
   var seq=++jitsiCallSeq;
-  var myName=(state.user&&state.user.name)||"";
-  var myEmail=(state.user&&state.user.email)||"";
   function plainIframe(){
+    frame.innerHTML="";
     var ifr=document.createElement("iframe");
     ifr.src=url;
     ifr.setAttribute("allow","camera; microphone; fullscreen; display-capture; autoplay; clipboard-write; encrypted-media");
@@ -4180,32 +4391,38 @@ function openJitsiCall(kind,chat){
     ifr.title=(isVideo?"Video call":"Voice call")+" — "+c.name;
     frame.appendChild(ifr);
   }
-  loadJitsiApi(function(ok){
+  plainIframe();
+  /* JOIN WATCHDOG: plain iframe ke andar conference join hui ya
+     join page par atki, is ka koi event bahar nahi aata — is liye
+     10 second baad madad wala bar khud dikha do (sirf tab jab yehi
+     call abhi bhi khuli ho): us mein browser wala guaranteed rasta
+     aur embed dobara try karne ka button, dono maujood hain. Call
+     normal join ho gayi ho to bar ko nazar andaaz kar dein —
+     End call par bar khud band ho jata hai. */
+  function armWatchdog(){
+    if(jitsiWatchdog) clearTimeout(jitsiWatchdog);
+    jitsiWatchdog=setTimeout(function(){
+      jitsiWatchdog=null;
+      if(seq!==jitsiCallSeq || !$("jitsiOverlay").classList.contains("open")) return;
+      var h=$("jitsiHelp"); if(h) h.hidden=false;
+      $("jitsiSub").textContent="Agar join page dikh raha hai, to neeche 'Browser mein join karein' dabayein.";
+    },10000);
+  }
+  armWatchdog();
+  /* "Embed dobara try karein" — iframe taaza load karke watchdog
+     dobara chalao. */
+  jitsiRetryFn=function(){
     if(seq!==jitsiCallSeq || !$("jitsiOverlay").classList.contains("open")) return;
-    if(!ok){ plainIframe(); return; }
-    try{
-      var cfg={ prejoinConfig:{ enabled:false }, disableDeepLinking:true };
-      if(!isVideo){ cfg.startAudioOnly=true; cfg.startWithVideoMuted=true; }
-      var api=new JitsiMeetExternalAPI("fairmeeting.net",{
-        roomName:roomName,
-        parentNode:frame,
-        width:"100%",
-        height:"100%",
-        configOverwrite:cfg,
-        userInfo:{ displayName:myName, email:myEmail }
-      });
-      jitsiApi=api;
-      /* Belt and braces: set the name again the moment the join
-         completes, in case the constructor value was missed. */
-      api.addEventListener("videoConferenceJoined",function(){
-        try{ api.executeCommand("displayName", myName); }catch(e){}
-      });
-    }catch(e){ plainIframe(); }
-  });
+    plainIframe();
+    var h=$("jitsiHelp"); if(h) h.hidden=true;
+    $("jitsiSub").textContent="Call dobara join ho rahi hai — thoda intezar karein…";
+    armWatchdog();
+  };
 }
 function closeJitsiCall(){
   navSyncClose("jitsi");
   jitsiCallSeq++; /* cancel a still-loading API script for this call */
+  if(jitsiWatchdog){ clearTimeout(jitsiWatchdog); jitsiWatchdog=null; }
   if(jitsiApi){ try{ jitsiApi.dispose(); }catch(e){} jitsiApi=null; }
   var jfEl=$("jitsiFrame");
   var ifrEl=jfEl ? jfEl.querySelector("iframe") : null;
@@ -4215,12 +4432,15 @@ function closeJitsiCall(){
     jitsiClosedAt=Date.now();
   }
   $("jitsiFrame").innerHTML="";
+  var jh=$("jitsiHelp"); if(jh) jh.hidden=true;
+  jitsiRetryFn=null;
   $("jitsiOverlay").classList.remove("open");
 }
 $("voiceBtn").addEventListener("click",function(){ openJitsiCall("voice"); });
 $("videoBtn").addEventListener("click",function(){ openJitsiCall("video"); });
 $("jitsiEndBtn").addEventListener("click",closeJitsiCall);
 $("jitsiBackBtn").addEventListener("click",closeJitsiCall);
+var jrb=$("jitsiRetryBtn"); if(jrb) jrb.addEventListener("click",function(){ if(jitsiRetryFn) jitsiRetryFn(); });
 $("chatMoreBtn").addEventListener("click",function(){ var c=getChat(state.openId); if(c) openSheet(c.name, profileHTML(c)); });
 $("chatWho").addEventListener("click",function(){ var c=getChat(state.openId); if(c) openSheet(c.name, profileHTML(c)); });
 
@@ -4408,6 +4628,46 @@ function handleGoogleLoginTap(){
 }
 var googleBtn=$("googleLoginBtn");
 if(googleBtn) googleBtn.addEventListener("click",handleGoogleLoginTap);
+
+/* ================= BUILD UPDATE CHECK =================
+   APK ki WebView page ko memory/cache mein rakhti hai: shell sirf
+   COLD start par cache clear karta hai — app peeche khuli reh jaye
+   to purana build hi chalta rehta hai, chahe server par naya build
+   aa gaya ho (call wale disableDeepLinking fix ke saath bilkul yahi
+   hua: fix live hone ke baad bhi phone purana page dikhata raha,
+   aur "band karke dobara kholo" par bhi hamesha naya nahi aata).
+   Is liye page khud waqfay waqfay se server se apna taaza version
+   poochti hai: neeche wali stamp fetched HTML ki stamp se alag ho
+   to page aik dafa cache-busting query ke saath khud reload ho jati
+   hai — user ko cache clear karne ki zaroorat nahi parti.
+   Hifazaten: reload sirf tab hota hai jab na koi chat khuli ho, na
+   call chal rahi ho; aur aik hi naye version ke liye dobara kabhi
+   nahi (session guard), taake loop na bane. */
+var BC_BUILD_STAMP="bc-2026-11-11-fix8";
+var bcUpdateBusy=false, bcLastCheck=0;
+function bcCheckForUpdate(){
+  var nowMs=Date.now();
+  if(bcUpdateBusy || nowMs-bcLastCheck<60000) return;
+  bcUpdateBusy=true; bcLastCheck=nowMs;
+  try{
+    /* Page ka apna pata kahin parha NAHI jata: khali relative URL
+       ("") browser khud maujooda document par resolve karta hai,
+       aur reload bhi sirf aik relative query se hota hai — ye check
+       har origin par waisa hi chalta hai jahan page serve ho. */
+    fetch("",{cache:"no-store"}).then(function(r){ return r.text(); }).then(function(html){
+      bcUpdateBusy=false;
+      var m=/BC_BUILD_STAMP="([^"]+)"/.exec(html||"");
+      if(!m || m[1]===BC_BUILD_STAMP) return; /* taaza hai — ya stamp mila hi nahi (wrapped preview), kuch na karo */
+      var latest=m[1];
+      try{ if(sessionStorage.getItem("bc_reloaded_for")===latest) return; }catch(e){}
+      if(loginDone && (state.openId || $("jitsiOverlay").classList.contains("open") || $("callOverlay").classList.contains("open"))) return; /* beech chat/call mein reload nahi — agle check par ho jayega */
+      try{ sessionStorage.setItem("bc_reloaded_for",latest); }catch(e){}
+      location.assign("?bcv="+encodeURIComponent(latest));
+    }).catch(function(){ bcUpdateBusy=false; });
+  }catch(e){ bcUpdateBusy=false; }
+}
+setTimeout(bcCheckForUpdate,2500);
+document.addEventListener("visibilitychange",function(){ if(!document.hidden) bcCheckForUpdate(); });
 
 /* ================= INIT ================= */
 renderChats(); renderUpdates(); renderCalls(); renderCommunities();
