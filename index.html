@@ -393,7 +393,7 @@
 
   /* Meezan-style bottom nav */
   .bottom-nav{ background:#fff; border-top:1px solid #f0e2c8; border-radius:22px 22px 0 0; box-shadow:0 -6px 20px rgba(62,35,18,.1); padding:.3rem .3rem calc(.3rem + env(safe-area-inset-bottom)); }
-    .nav-item{ color:#a08b6f; border-radius:0; font-size:.72rem; min-height:56px; }
+    .nav-item{ color:#a08b6f; border-radius:0; font-size:.72rem; min-height:56px; white-space:nowrap; }
   .nav-item::before{ content:""; position:absolute; top:-1px; left:50%; transform:translateX(-50%); width:34px; height:3.5px; border-radius:0 0 4px 4px; background:transparent; }
   .nav-item.on{ color:var(--brown-800); }
     .nav-item.on::before{ background:var(--brown-700); }
@@ -1145,6 +1145,7 @@
           <button type="button" class="role-btn on" data-role="Student">Student (Taliba)</button>
           <button type="button" class="role-btn" data-role="Teacher">Teacher (Ustadha)</button>
         </div>
+        <p id="roleHint" style="display:none;margin:.45rem 0 0;font-size:.82rem;color:var(--muted)">Account galat role se ban gaya tha? Yahan apna sahi role chunein — login par account usi role mein update ho jayega.</p>
       </div>
       <div class="login-err" id="loginError" role="alert"></div>
       <button type="submit" class="login-btn" id="loginBtn">Continue with email</button>
@@ -1175,15 +1176,16 @@
         <button class="avatar sm" id="ownAvatar" style="background:#8a5a24" aria-label="Your profile">A</button>
         <button class="icon-btn" id="moreBtn" aria-label="More options" aria-haspopup="true"><svg viewBox="0 0 24 24"><path d="M12 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm0 6a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg></button>
       </div>
-      <button class="gold-pill" id="dashPill">Banat Institute • Student Account <span class="chev">▾</span></button>
-      <div class="dash-stat-label">My classes &amp; chats</div>
-      <div class="dash-stat">14 <small>joined • 1 live now</small></div>
+      <button class="gold-pill" id="dashPill">Student Account <span class="chev">▾</span></button>
+      <div class="dash-stat-label">Chats &amp; groups</div>
+      <div class="dash-stat"><span id="dashChatCount">10</span> <small>chats, groups &amp; calls</small></div>
       <div class="dash-actions">
-        <button class="solid" id="dashJoin">Join live class</button>
-        <button id="dashSchedule">View classes</button>
+        <button class="solid" id="dashNewChat">New chat</button>
+        <button id="dashNewGroup">New group</button>
       </div>
       <div class="menu" id="mainMenu" role="menu">
         <button data-menu="newgroup">New group</button>
+        <button data-menu="classes">My Classes</button>
         <button data-menu="broadcast" style="display:none">New broadcast</button>
         <button data-menu="starred">Starred messages</button>
         <button data-menu="payments">Payments</button>
@@ -1194,19 +1196,19 @@
 
       <div id="view-chats">
         <div class="dash-grid" aria-label="Quick actions">
-          <button class="dash-act" data-dash="live"><span class="ic"><svg viewBox="0 0 24 24"><path d="M17 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3.5l4 4v-11z"/></svg></span>Live Class</button>
-          <button class="dash-act" data-dash="chats"><span class="ic"><svg viewBox="0 0 24 24"><path d="M20 2H4a2 2 0 0 0-2 2v18l4-4h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2zm-4 9H8V9h8zm0-3H8V6h8z"/></svg></span>My Chats</button>
-          <button class="dash-act" data-dash="notes"><span class="ic"><svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6zm8 1.5V8h4.5zM9 12h6v2H9zm0 4h6v2H9z"/></svg></span>Class Notes</button>
-          <button class="dash-act" data-dash="attendance"><span class="ic"><svg viewBox="0 0 24 24"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg></span>Attendance</button>
+          <button class="dash-act" data-dash="newchat"><span class="ic"><svg viewBox="0 0 24 24"><path d="M20 2H4a2 2 0 0 0-2 2v18l4-4h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2zm-4 9H8V9h8zm0-3H8V6h8z"/></svg></span>New Chat</button>
+          <button class="dash-act" data-dash="newgroup"><span class="ic"><svg viewBox="0 0 24 24"><path d="M16 11a4 4 0 1 0-4-4 4 4 0 0 0 4 4zM8 11a4 4 0 1 0-3.9-4.6A5.9 5.9 0 0 1 6 11.4 4 4 0 0 0 8 11zm8 2c-2.7 0-8 1.3-8 4v3h16v-3c0-2.7-5.3-4-8-4zm-8.2.4C6.4 13.2 2 14.5 2 17v3h4v-3a6.4 6.4 0 0 1 1.8-3.6z"/></svg></span>New Group</button>
+          <button class="dash-act" data-dash="calls"><span class="ic"><svg viewBox="0 0 24 24"><path d="M6.6 10.8a15.9 15.9 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.24 11.4 11.4 0 0 0 3.6.6 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.4 11.4 0 0 0 .6 3.6 1 1 0 0 1-.25 1z"/></svg></span>Calls</button>
+          <button class="dash-act" data-dash="contacts"><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z"/></svg></span>Contacts</button>
         </div>
-        <div class="quick-head"><b>Quick Join</b><span>Teachers &amp; classes</span></div>
+        <div class="quick-head"><b>Quick Chats</b><span>Tap to open a chat</span></div>
         <div class="quick-row">
           <button class="quick-item" data-quick-add><span class="quick-add">+</span><span class="qname">Add</span></button>
           <button class="quick-item" data-quick="fatima"><span class="avatar md" style="background:#7c4a21">FZ</span><span class="qname">Ustadha</span></button>
-          <button class="quick-item" data-quick="tajweedA"><span class="avatar md" style="background:#9a6228">TA</span><span class="qname">Tajweed</span></button>
-          <button class="quick-item" data-quick="hifz"><span class="avatar md" style="background:#b07a35">QH</span><span class="qname">Hifz</span></button>
-          <button class="quick-item" data-quick="arabic"><span class="avatar md" style="background:#5a3418">AL</span><span class="qname">Arabic</span></button>
           <button class="quick-item" data-quick="maryam"><span class="avatar md" style="background:#a0527a">MS</span><span class="qname">Maryam</span></button>
+          <button class="quick-item" data-quick="ayesha"><span class="avatar md" style="background:#8a5a24">AK</span><span class="qname">Ayesha</span></button>
+          <button class="quick-item" data-quick="khadija"><span class="avatar md" style="background:#7a5c2e">KN</span><span class="qname">Khadija</span></button>
+          <button class="quick-item" data-quick="zainab"><span class="avatar md" style="background:#6b421c">ZF</span><span class="qname">Zainab</span></button>
         </div>
         <div class="quick-head" style="padding-top:.55rem"><b>Recent Chats</b><span>View all in Chats below</span></div>
         <div class="search-wrap">
@@ -1220,7 +1222,6 @@
           <button class="chip" data-filter="unread">Unread</button>
           <button class="chip" data-filter="favourites">Favourites</button>
           <button class="chip" data-filter="groups">Groups</button>
-          <button class="chip" data-filter="live">Live</button>
         </div>
         <div class="list-scroll" id="chatList"></div>
       </div>
@@ -1243,6 +1244,7 @@
       <button class="nav-item" data-nav="calls"><span class="pill"><svg viewBox="0 0 24 24"><path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zm2 4v2h4V8zm0 5v2h7v-2zm11-5-4 2.5v3L17 16z"/></svg></span>Calls</button>
       <button class="nav-item" data-nav="updates"><span class="pill"><svg viewBox="0 0 24 24"><path d="M4 20V10h3.5v10zm6.25 0V4H14v16zm6.25 0v-7H20v7z"/></svg></span>Activity</button>
       <button class="nav-item" data-nav="communities"><span class="pill"><svg viewBox="0 0 24 24"><path d="M16 11a4 4 0 1 0-4-4 4 4 0 0 0 4 4zM8 11a4 4 0 1 0-3.9-4.6A5.9 5.9 0 0 1 6 11.4 4 4 0 0 0 8 11zm8 2c-2.7 0-8 1.3-8 4v3h16v-3c0-2.7-5.3-4-8-4zm-8.2.4C6.4 13.2 2 14.5 2 17v3h4v-3a6.4 6.4 0 0 1 1.8-3.6z"/></svg></span>Groups</button>
+      <button class="nav-item" data-nav="classes"><span class="pill"><svg viewBox="0 0 24 24"><path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3 1 9l4 2.18v6L12 9l7-3.82v-6l2-1.09V17h2V9L12 3z"/></svg></span>My Classes</button>
       <button class="nav-item" data-nav="more"><span class="pill"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/><circle cx="12" cy="5" r="2" opacity=".55"/><circle cx="19" cy="5" r="2" opacity=".55"/><circle cx="5" cy="19" r="2" opacity=".55"/><circle cx="12" cy="19" r="2" opacity=".55"/><circle cx="19" cy="19" r="2" opacity=".55"/><circle cx="5" cy="5" r="2" opacity=".55"/></svg></span>More</button>
     </nav>
   </aside>
@@ -1253,7 +1255,7 @@
       <div class="hero-orn sm" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none"><path d="M24 3.5 25.9 9 31.5 10.9 25.9 12.8 24 18.3 22.1 12.8 16.5 10.9 22.1 9Z" fill="#e9dcc0"/><path d="M24 24.2c-3.9-3.3-9.4-4.2-15-3.2v18.4c5.6-1 11.1-.1 15 3.2 3.9-3.3 9.4-4.2 15-3.2V21c-5.6-1-11.1-.1-15 3.2Z" stroke="#e9dcc0" stroke-width="2.4" stroke-linejoin="round"/><path d="M24 24.2v18.4" stroke="#e9dcc0" stroke-width="2.4"/></svg></div>
       <h2>Banat Connect</h2>
       <p>Send and receive class messages, notes and voice notes — without exposing anyone's phone number. Select a chat on the left to start.</p>
-      <p>Banat Connect is a females-only learning space. You joined with your email — no phone number was needed. Join live classes from the Calls tab, with screen share, raise hand and attendance.</p>
+      <p>Banat Connect is a females-only space. You joined with your email — no phone number was needed. Chat, make groups and call your sisters here; your classes live separately under the My Classes tab below (or More → My Classes).</p>
       <div class="lock">🔒 &nbsp;Your personal messages stay private — numbers hidden, always</div>
     </div>
 
@@ -1535,7 +1537,7 @@ var COMMUNITIES=[
 ];
 
 /* ================= STATE / HELPERS ================= */
-var state={ view:"chats", filter:"all", query:"", openId:null, callTimer:null, callSec:0, user:{ name:"Amina Khan", email:"", role:"Student" },
+var state={ view:"chats", filter:"all", query:"", openId:null, callTimer:null, callSec:0, user:{ name:"Amina Khan", email:"", role:"Student" }, myPhone:"",
   settings:{ notifications:true, camOff:true, micMuted:true, privacySeen:true, privacyPhoto:true } };
 /* Attendance kept outside the live-class room too, so the Attendance
    screen and the in-class Participants panel always agree: marking in
@@ -1635,9 +1637,16 @@ function getChat(id){ for(var i=0;i<CHATS.length;i++) if(CHATS[i].id===id) retur
 function nowTime(){ var d=new Date(),h=d.getHours(),m=d.getMinutes(),ap=h>=12?"PM":"AM"; h=h%12||12; return h+":"+(m<10?"0":"")+m+" "+ap; }
 
 /* ================= CHAT LIST ================= */
+/* Class / institute chats app ke front (Layer 1) par NAHI aate —
+   wo sirf gated Classes area (More → My Classes) mein khulte hain,
+   sirf approved members ke liye. Front sirf general chats, groups
+   aur contacts dikhata hai, bilkul WhatsApp ki tarah. */
+var FRONT_HIDDEN_CLASS_IDS=["hifz","tajweedA","arabic","announce","fiqh"];
+function isClassChat(c){ return !!(c && c.group && (c.dbClassId || c.classGroup || FRONT_HIDDEN_CLASS_IDS.indexOf(c.id)>=0)); }
 function renderChats(){
   var list=$("chatList"); var q=state.query.toLowerCase();
   var items=CHATS.filter(function(c){
+    if(isClassChat(c)) return false;
     if(state.filter==="unread" && !c.unread) return false;
     if(state.filter==="favourites" && !c.fav) return false;
     if(state.filter==="groups" && !c.group) return false;
@@ -1660,7 +1669,8 @@ function renderChats(){
       +(c.unread?'<span class="badge">'+c.unread+'</span>':"")
       +'</span></span></button>';
   }).join("");
-  var total=0; CHATS.forEach(function(c){ total+=c.unread||0; });
+  var total=0, frontCount=0; CHATS.forEach(function(c){ if(isClassChat(c)) return; frontCount++; total+=c.unread||0; });
+  var dcc=$("dashChatCount"); if(dcc) dcc.textContent=frontCount;
   $("totalUnread").textContent=total; $("totalUnread").style.display=total?"flex":"none";
   list.querySelectorAll("[data-open]").forEach(function(b){ b.addEventListener("click",function(){ openChat(b.getAttribute("data-open")); }); });
 }
@@ -1694,13 +1704,10 @@ function renderUpdates(){
   }); });
 }
 function renderCalls(){
-  var h='<div class="live-card"><div style="display:flex;align-items:center;gap:.55rem;flex-wrap:wrap"><span class="live-badge">● LIVE NOW</span><span style="font-size:.82rem;opacity:.92">Started 10:00 AM • 24 sisters in class</span></div>'
-  +'<div style="font-size:1.18rem;font-weight:700;margin-top:.55rem">Tajweed Class — Group A</div>'
-  +'<div style="font-size:.88rem;opacity:.94;line-height:1.5">Ustadha Fatima Zahra • Surah Al-Mulk, ayat 1–10<br>Inside: live video, screen share, raise hand, class chat &amp; attendance</div>'
-  +'<button class="join-btn" id="joinLiveBtn">Join live class</button></div>'
-  +'<button class="row" id="startClassRow"><span class="avatar md" style="background:#5a3418"><svg viewBox="0 0 24 24" style="width:24px;height:24px;fill:#fff"><path d="M17 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3.5l4 4v-11z"/></svg></span><span class="row-main"><span class="row-top"><span class="row-name">Start a live class</span></span><span class="row-sub"><span class="row-msg">Host a Zoom-style class — video tiles, screen share, mute control, attendance</span></span></span></button>'
-  +'<button class="row" id="callLinkRow"><span class="avatar md" style="background:#9a6228"><svg viewBox="0 0 24 24" style="width:24px;height:24px;fill:#fff"><path d="M10.6 13.4a4 4 0 0 0 5.7 0l3-3a4 4 0 1 0-5.7-5.7l-1.5 1.5 1.4 1.4 1.5-1.5a2 2 0 1 1 2.9 2.9l-3 3a2 2 0 0 1-2.9 0 2 2 0 0 1 0-2.9l1.5-1.5-1.4-1.4zm3.8-5.5a4 4 0 0 0-5.7 0l-3 3a4 4 0 1 0 5.7 5.7l1.5-1.5-1.4-1.4-1.5 1.5a2 2 0 1 1-2.9-2.9l3-3a2 2 0 0 1 2.9 0 2 2 0 0 1 0 2.9l-1.5 1.5 1.4 1.4 1.5-1.5a4 4 0 0 0 0-5.6z"/></svg></span><span class="row-main"><span class="row-top"><span class="row-name">Create call link</span></span><span class="row-sub"><span class="row-msg">Share a link for your Banat Connect call</span></span></span></button>';
-  h+='<div class="section-label">Recent</div>';
+  /* Calls tab = sirf general calls (WhatsApp style). Live class yahan
+     NAHI hai — wo gated Classes area (More → My Classes) mein hai,
+     sirf approved members ke liye. Neeche sirf call history hai. */
+  var h='<div class="section-label">Recent</div>';
   h+=CALLS.map(function(c){
     var col = c.dir==="missed" ? "#ea0038" : "#9a6228";
     var arrow = c.dir==="out" ? "↗" : "↙";
@@ -1732,11 +1739,17 @@ function renderCalls(){
 function renderCommunities(){
   var h='<button class="row" id="newComm"><span class="avatar md" style="background:#eee2cc;color:#7c4a21;border-radius:14px;font-size:1.3rem">+</span><span class="row-main"><span class="row-top"><span class="row-name">New community</span></span><span class="row-sub"><span class="row-msg">Start a community for your institute</span></span></span></button>';
   COMMUNITIES.forEach(function(cm){
-    h+='<div class="section-label" style="display:flex;gap:.7rem;align-items:center"><span class="avatar sm" style="background:'+avColor(cm.color)+';border-radius:12px">'+esc(initials(cm.name))+'</span>'+esc(cm.name)+'</div>';
+    /* Class/institute groups Groups view mein nahi aate — wo gated
+       Classes area mein hain. Jis community ke saare groups class
+       wale hon (masalan institute wali) wo poori skip ho jati hai. */
+    var rows="";
     cm.groups.forEach(function(g){
       var c=null; CHATS.forEach(function(x){ if(x.name===g) c=x; });
-      h+='<button class="row" data-open="'+(c?c.id:"")+'"><span class="avatar md" style="background:'+avColor(c?c.color:3)+'">'+esc(initials(g))+'</span><span class="row-main"><span class="row-top"><span class="row-name">'+esc(g)+'</span></span><span class="row-sub"><span class="row-msg">'+(c?esc(lastMsg(c).t):"")+'</span></span></span></button>';
+      if(c && isClassChat(c)) return;
+      rows+='<button class="row" data-open="'+(c?c.id:"")+'"><span class="avatar md" style="background:'+avColor(c?c.color:3)+'">'+esc(initials(g))+'</span><span class="row-main"><span class="row-top"><span class="row-name">'+esc(g)+'</span></span><span class="row-sub"><span class="row-msg">'+(c?esc(lastMsg(c).t):"")+'</span></span></span></button>';
     });
+    if(!rows) return;
+    h+='<div class="section-label" style="display:flex;gap:.7rem;align-items:center"><span class="avatar sm" style="background:'+avColor(cm.color)+';border-radius:12px">'+esc(initials(cm.name))+'</span>'+esc(cm.name)+'</div>'+rows;
   });
   $("commList").innerHTML=h;
   var nc=$("newComm"); if(nc) nc.addEventListener("click",function(){ openSheet("New community", newCommunityHTML()); });
@@ -1894,6 +1907,244 @@ var dbAnnCache = {};        /* chatId -> [announcement rows] (DB classes) */
 var dbAttCache = null;      /* {chat, members:[{id,name,role}], status:{studentId:status}} */
 var dbFoundUser = null;     /* number lookup ka result (number kabhi save nahi hota) */
 
+/* ============================================================
+   CLASS JOIN REQUESTS — gated Classes layer (More → My Classes)
+   ------------------------------------------------------------
+   Do-layer design: app ka front GENERAL hai (chats / calls /
+   groups — har female ke liye, institute ho ya na ho). Classes
+   alag, gated hain: student pehle REQUEST bhejti hai, institute
+   ki Teacher/Admin approve karti hai, tab hi membership milti
+   hai. Verification SIRF pehli dafa hoti hai — aik dafa approve
+   ho jaye to membership hamesha rehti hai (DB mein class_members
+   row; demo mein neeche wali local list), re-login / rejoin par
+   dobara verification kabhi nahi mangi jati.
+   Database: table class_join_requests + RPCs approve_join_request
+   / reject_join_request (migration-002). Table abhi na ho to app
+   khud local demo storage par gir jati hai — bilkul waisi hi
+   fallback jaise Supabase library load na hone par DB_ON=false
+   ho jata hai — taake poora flow demo mein test ho sake.
+   ============================================================ */
+var JR_KEY="bc_join_requests_v1";
+var jrLocal={};            /* key -> request entry (demo/local store) */
+var jrDbAvailable=null;    /* null = abhi probe nahi hua; true/false */
+var jrTeacherCache=[];     /* teacher ke liye DB pending rows */
+/* Demo directory: aik class jo chat list mein NAHI hai — student
+   isay code "fiqh" se request karke poora approval flow test kar
+   sakti hai. Approve hote hi is ki chat ban jati hai. */
+var DEMO_DIRECTORY=[
+  {code:"fiqh", chatId:"fiqh", name:"Fiqh Class — Beginners", sub:"Ustadha Salma • New batch", color:6}
+];
+function jrSaveLocal(){ try{ localStorage.setItem(JR_KEY, JSON.stringify(jrLocal)); }catch(e){} }
+function jrLoadLocal(){
+  jrLocal={};
+  try{ var raw=localStorage.getItem(JR_KEY); if(raw){ var p=JSON.parse(raw); if(p && typeof p==="object") jrLocal=p; } }catch(e){}
+  if(!jrLocal.__seeded){
+    jrLocal.__seeded=true;
+    /* Demo seed: Ruqayya ki aik purani pending request, taake
+       Teacher ko Pending requests screen khali na mile. Ye wohi
+       Ruqayya hai jo Manage students mein bhi waiting hai —
+       approve dono jagah sync rehta hai. */
+    jrLocal["demo|ruqayya|tajweedA"]={ key:"demo|ruqayya|tajweedA", demo:true, userName:"Ruqayya Hassan",
+      classKey:"tajweedA", chatId:"tajweedA", className:"Tajweed Class — Group A", code:"tajweeda", status:"pending", at:Date.now() };
+    jrSaveLocal();
+  }
+  return jrLocal;
+}
+function jrMyKey(classKey){ return "me|"+(state.user.id||state.user.email||state.user.name||"demo")+"|"+classKey; }
+function jrPendingEntries(){
+  var out=[];
+  Object.keys(jrLocal).forEach(function(k){ var e=jrLocal[k]; if(e && typeof e==="object" && e.status==="pending") out.push(e); });
+  return out;
+}
+function jrMyPending(){ return jrPendingEntries().filter(function(e){ return e.mine; }); }
+function jrEnsureChat(e){
+  /* Approved class ki chat agar list mein nahi (demo directory
+     wali class) to bana do — yahi membership ka saboot hai, aur
+     jrRestoreApproved isay har restart par wapas le aata hai. */
+  if(!e || !e.chatId || getChat(e.chatId)) return;
+  CHATS.unshift({ id:e.chatId, name:e.className, sub:e.sub||"Class group", color:(typeof e.color==="number"?e.color:6),
+    group:true, classGroup:true, unread:0, time:"now",
+    msgs:[{f:"them",who:"Ustadha",wc:"#7c4a21",t:"Assalamu alaikum 🌸 Welcome to "+e.className+" — your institute approved your request, so you are a member now. Class messages, notes and live classes will appear here.",time:nowTime()}],
+    replies:["Jazakillahu khairan Ustadha 🌸"] });
+}
+function jrRestoreApproved(){
+  /* Verification-once: approved memberships local store se wapas —
+     re-login aur app restart par dobara approval NAHI mangta. */
+  Object.keys(jrLocal).forEach(function(k){ var e=jrLocal[k]; if(e && typeof e==="object" && e.status==="approved") jrEnsureChat(e); });
+}
+/* Migration-002 wali table maujood hai ya nahi — aik dafa probe. */
+async function jrProbe(){
+  if(!DB_ON) return false;
+  if(jrDbAvailable!==null) return jrDbAvailable;
+  try{ var r=await sb.from("class_join_requests").select("id").limit(1); jrDbAvailable=!r.error; }
+  catch(e){ jrDbAvailable=false; }
+  return jrDbAvailable;
+}
+/* Student: code se join REQUEST bhejna (instant join NAHI). */
+async function jrRequestJoin(code){
+  /* 1) Pehle se member? To verification dobara nahi — seedha class. */
+  var localChat=null;
+  CHATS.forEach(function(x){ if(x.group && (x.id.toLowerCase()===code || (x.dbCode||"").toLowerCase()===code)) localChat=x; });
+  if(localChat && classChats().indexOf(localChat)>=0){
+    closeSheet(); switchView("chats"); openChat(localChat.id);
+    toast("Aap pehle se is class ki member hain — verification sirf pehli dafa hoti hai, dobara nahi.");
+    return;
+  }
+  var dir=null; DEMO_DIRECTORY.forEach(function(d){ if(d.code===code) dir=d; });
+  /* 2) Database wali class? */
+  if(DB_ON && state.user.id){
+    var cls=null;
+    try{ var cr=await sb.from("classes").select("*").ilike("code",code).limit(1); if(cr.data && cr.data[0]) cls=cr.data[0]; }catch(e){}
+    if(cls){
+      /* Asal membership pehle check karo (class_members = verification record) */
+      try{
+        var mr=await sb.from("class_members").select("user_id").eq("class_id",cls.id).eq("user_id",state.user.id).limit(1);
+        if(mr.data && mr.data.length){
+          var tn=await dbNamesFor([cls.teacher_id]);
+          var mc=dbMergeClass(cls, tn[cls.teacher_id]||"");
+          await dbLoadClassMessages(mc); renderChats();
+          closeSheet(); switchView("chats"); openChat(mc.id);
+          toast("Aap pehle se is class ki member hain — verification sirf pehli dafa hoti hai, dobara nahi.");
+          return;
+        }
+      }catch(e){}
+      var classKey="db_"+cls.id.slice(0,8);
+      if(await jrProbe()){
+        /* Pehle se pending hai to dobara insert nahi */
+        try{
+          var pr=await sb.from("class_join_requests").select("id").eq("class_id",cls.id).eq("user_id",state.user.id).eq("status","pending").limit(1);
+          if(pr.data && pr.data.length){ toast("Request pehle se bheji hui hai — Approval ka intezar hai."); refreshSheet(classesHTML()); return; }
+        }catch(e){}
+        var ins=await sb.from("class_join_requests").insert({class_id:cls.id, user_id:state.user.id}).select().single();
+        if(!ins.error && ins.data){
+          jrLocal[jrMyKey(classKey)]={ key:jrMyKey(classKey), mine:true, dbReqId:ins.data.id, dbClassId:cls.id,
+            userName:state.user.name, classKey:classKey, className:cls.name, code:code, status:"pending", at:Date.now() };
+          jrSaveLocal();
+          toast("Request bhej di gayi ✓ — institute ki approval ka intezar hai. Approve hote hi class yahan nazar aayegi.");
+          refreshSheet(classesHTML());
+          return;
+        }
+        jrDbAvailable=false; /* insert fail = table/RPC tayyar nahi — local fallback */
+      }
+      /* Local demo fallback (migration abhi apply nahi hui) */
+      jrLocal[jrMyKey(classKey)]={ key:jrMyKey(classKey), mine:true, userName:state.user.name, classKey:classKey,
+        className:cls.name, code:code, status:"pending", at:Date.now() };
+      jrSaveLocal();
+      toast("Request bhej di gayi ✓ — institute ki approval ka intezar hai. (Demo mode: request is device par save hui hai.)");
+      refreshSheet(classesHTML());
+      return;
+    }
+  }
+  /* 3) Demo directory wali class (chat abhi exist nahi karti) */
+  if(dir){
+    var key=jrMyKey(dir.chatId);
+    if(jrLocal[key] && jrLocal[key].status==="pending"){ toast("Request pehle se bheji hui hai — Approval ka intezar hai."); refreshSheet(classesHTML()); return; }
+    jrLocal[key]={ key:key, mine:true, userName:state.user.name, classKey:dir.chatId, chatId:dir.chatId,
+      className:dir.name, sub:dir.sub, color:dir.color, code:dir.code, status:"pending", at:Date.now() };
+    jrSaveLocal();
+    toast("Request bhej di gayi ✓ — institute ki approval ka intezar hai. Approve hote hi class yahan nazar aayegi.");
+    refreshSheet(classesHTML());
+    return;
+  }
+  toast("No class with the code “"+code+"” — check the code with your teacher.");
+}
+/* Student apni pending request wapas le sakti hai */
+async function jrCancelMine(key){
+  var e=jrLocal[key]; if(!e) return;
+  if(e.dbReqId && DB_ON && jrDbAvailable){ try{ await sb.from("class_join_requests").delete().eq("id",e.dbReqId); }catch(err){} }
+  delete jrLocal[key]; jrSaveLocal();
+  refreshSheet(classesHTML());
+  toast("Request wapas le li gayi.");
+}
+/* Teacher (local/demo): approve — membership foran active */
+function jrApproveLocal(key){
+  var e=jrLocal[key]; if(!e) return;
+  e.status="approved"; e.decidedAt=Date.now(); jrSaveLocal();
+  if(e.userName==="Ruqayya Hassan") approvedStudents["Ruqayya Hassan"]=true;
+  jrEnsureChat(e);
+  renderChats(); renderCommunities();
+  refreshSheet(joinRequestsHTML());
+  toast(e.userName+" approved ✓ — ab wo "+e.className+" ki member hain. Dobara verification nahi hogi.");
+}
+function jrRejectLocal(key){
+  var e=jrLocal[key]; if(!e) return;
+  var nm=e.userName;
+  delete jrLocal[key]; jrSaveLocal();
+  refreshSheet(joinRequestsHTML());
+  toast(nm+" ki request reject ho gayi.");
+}
+/* Teacher (DB): apni classes ki pending requests load karo */
+async function dbLoadJoinRequests(){
+  if(!DB_ON || !isTeacher()) return;
+  if(!(await jrProbe())) return;
+  try{
+    var r=await sb.from("class_join_requests").select("id,class_id,user_id,requested_at").eq("status","pending");
+    if(r.error || !r.data) return;
+    var names=await dbNamesFor(r.data.map(function(x){ return x.user_id; }));
+    jrTeacherCache=r.data.map(function(x){
+      var c=dbChatByClassId(x.class_id);
+      return { id:x.id, userName:names[x.user_id]||"Student", className:c?c.name:"Class", code:c?(c.dbCode||""):"" };
+    });
+    var top=sheetStack[sheetStack.length-1];
+    if(top && /join requests/i.test(top.title)) refreshSheet(joinRequestsHTML());
+    else if(top && /classes/i.test(top.title)) refreshSheet(classesHTML());
+  }catch(e){}
+}
+async function dbDecideJoinRequest(reqId, approve){
+  try{
+    var r=await sb.rpc(approve?"approve_join_request":"reject_join_request",{p_request_id:reqId});
+    if(r.error) throw r.error;
+    jrTeacherCache=jrTeacherCache.filter(function(x){ return x.id!==reqId; });
+    if(approve){ try{ await dbLoadAndMergeClasses(); }catch(e){} }
+    refreshSheet(joinRequestsHTML());
+    toast(approve?"Approved ✓ — student ab class ki member hai. Dobara verification nahi hogi.":"Request reject ho gayi.");
+  }catch(e){ toast("Request par amal nahi ho saka — dobara try karein"); }
+}
+/* Login ke baad: meri DB pending requests ko local list mein mirror
+   karo taake "Approval ka intezar hai" har login par nazar aaye. */
+async function dbLoadMyJoinRequests(){
+  if(!DB_ON || !state.user.id) return;
+  if(!(await jrProbe())) return;
+  try{
+    var r=await sb.from("class_join_requests").select("id,class_id,status").eq("user_id",state.user.id).eq("status","pending");
+    if(r.error || !r.data) return;
+    r.data.forEach(function(row){
+      var c=dbChatByClassId(row.class_id);
+      var classKey=c?c.id:("db_"+row.class_id.slice(0,8));
+      var key=jrMyKey(classKey);
+      if(!jrLocal[key]) jrLocal[key]={ key:key, mine:true, dbReqId:row.id, dbClassId:row.class_id, userName:state.user.name,
+        classKey:classKey, className:c?c.name:"Class", code:c?(c.dbCode||""):"", status:"pending", at:Date.now() };
+    });
+    jrSaveLocal();
+  }catch(e){}
+}
+/* Teacher ke liye Pending requests screen — sirf Teacher/Admin ko
+   nazar aati hai; student is screen tak pohoch hi nahi sakti. */
+function joinRequestsHTML(){
+  var h='<div class="sheet-pad" style="padding-bottom:0"><p style="font-size:.9rem;line-height:1.55;color:var(--muted);margin:.6rem 0 0">Jo students aap ki classes join karna chahti hain, un ki requests yahan aati hain. <b style="color:var(--text)">Approve</b> karne par wo class ki member ban jati hain — verification sirf pehli dafa hoti hai, us ke baad dobara kabhi nahi. <b style="color:var(--text)">Reject</b> karne par request khatam ho jati hai.</p></div>';
+  var rowsHtml="";
+  jrPendingEntries().filter(function(e){ return !e.mine; }).forEach(function(e){
+    rowsHtml+='<div class="p-row"><span class="avatar sm" style="background:#8a6d4f">'+esc(initials(e.userName||"Student"))+'</span>'
+    +'<span class="tt"><b>'+esc(e.userName||"Student")+'</b><span>'+esc(e.className)+(e.code?' • Code: '+esc(e.code):'')+'</span></span>'
+    +'<button class="p-mute" data-jr-approve="'+esc(e.key)+'">Approve</button>'
+    +'<button class="p-mute off" data-jr-reject="'+esc(e.key)+'">Reject</button></div>';
+  });
+  jrTeacherCache.forEach(function(x){
+    rowsHtml+='<div class="p-row"><span class="avatar sm" style="background:#8a6d4f">'+esc(initials(x.userName))+'</span>'
+    +'<span class="tt"><b>'+esc(x.userName)+'</b><span>'+esc(x.className)+(x.code?' • Code: '+esc(x.code):'')+'</span></span>'
+    +'<button class="p-mute" data-jr-approvedb="'+esc(x.id)+'">Approve</button>'
+    +'<button class="p-mute off" data-jr-rejectdb="'+esc(x.id)+'">Reject</button></div>';
+  });
+  if(!rowsHtml){
+    h+='<div class="empty-note">Abhi koi pending request nahi hai.<br>Jab koi student class code se request bheje gi to wo yahan nazar aayegi.</div>';
+  } else {
+    h+='<div style="padding-top:.4rem">'+rowsHtml+'</div>'
+    +'<div class="empty-note">Approve ki hui membership hamesha rehti hai — student ko dobara verification nahi karni parti.</div>';
+  }
+  return h;
+}
+jrLoadLocal();
+
 function dbFmtTime(iso){
   try{ var d=new Date(iso); var h=d.getHours(),m=d.getMinutes(),ap=h>=12?"PM":"AM"; h=h%12||12; return h+":"+(m<10?"0":"")+m+" "+ap; }catch(e){ return nowTime(); }
 }
@@ -2043,6 +2294,9 @@ async function dbAfterLogin(){
   if(!DB_ON || !state.user.id) return;
   try{ if(isTeacher()) await dbSeedDemoClasses(); }catch(e){}
   try{ await dbLoadAndMergeClasses(); }catch(e){}
+  try{ await dbLoadMyPhone(); }catch(e){}
+  try{ await dbLoadMyJoinRequests(); }catch(e){}
+  try{ if(isTeacher()) await dbLoadJoinRequests(); }catch(e){}
   dbSubscribeRealtime();
 }
 function dbSubscribeRealtime(){
@@ -2136,6 +2390,37 @@ async function dbSendMediaFile(c, fileOrBlob, kind, localUrl, fileName, durText)
     toast(kind==="voice" ? "Voice note upload nahi hui — dobara try karein" : "File upload nahi hui — dobara try karein");
   }
 }
+/* Number ko AIK hi canonical form mein badlo — bilkul waisa jaisa
+   server ka normalize_phone karta hai (spaces/dashes/+ khatam;
+   +92 wala aur 92 wala number 0-wali 11-digit form mein; 10-digit
+   3-wala number bhi 0-wali form mein). Save aur search DONO pehle
+   is se guzarte hain, is liye dono taraf hamesha aik hi string
+   database tak jati hai aur hash hamesha match karta hai — chahe
+   number kisi bhi format mein likha gaya ho. */
+function normalizePhoneInput(raw){
+  var v=String(raw||"").replace(/[^0-9]/g,"");
+  if(v.length===12 && v.slice(0,2)==="92") return "0"+v.slice(2);
+  if(v.length===10 && v.charAt(0)==="3") return "0"+v;
+  return v;
+}
+/* Apna saved number wapas parhna: private_contacts par RLS sirf
+   MALIK ko apni row parhne deti hai, is liye ye select sirf apna
+   hi number la sakta hai — kisi aur ka kabhi nahi. Profile khulte
+   hi ye chalta hai taake saved number field mein dikhe; database
+   mein number na ho to field khali rehta hai. */
+async function dbLoadMyPhone(){
+  if(!DB_ON || !state.user || !state.user.id) return;
+  var before=state.myPhone||"";
+  try{
+    var r=await sb.from("private_contacts").select("phone_number").eq("user_id",state.user.id).maybeSingle();
+    if(r.error) throw r.error;
+    state.myPhone=(r.data&&r.data.phone_number)?normalizePhoneInput(r.data.phone_number):"";
+    var pi=$("profPhone");
+    /* Field tabhi bhara jata hai jab user is beech khud kuch na likh
+       raha ho — khali field ya purana cached number hi replace hota hai. */
+    if(pi && document.activeElement!==pi && (!pi.value || pi.value===before)) pi.value=state.myPhone;
+  }catch(e){ if(window.console&&console.warn) console.warn("private_contacts load error:",e); }
+}
 /* Number se dhoondhna: server function sirf naam/role/institute deta
    hai — number kabhi wapas nahi aata, aur yahan bhi kahin show nahi hota. */
 async function dbFindByNumber(num){
@@ -2144,7 +2429,7 @@ async function dbFindByNumber(num){
     var r=await sb.rpc("find_user_by_number",{p_number:num});
     if(r.error) throw r.error;
     var row=(r.data&&r.data[0])||null;
-    if(!row){ if(box) box.innerHTML=""; toast("Is number par koi nahi mila"); return; }
+    if(!row){ if(box) box.innerHTML='<div class="empty-note">Is number par koi account nahi mila — number check karke dobara try karein.</div>'; toast("Is number par koi nahi mila"); return; }
     dbFoundUser=row;
     if(box){
       box.innerHTML='<div class="set-row" style="cursor:default"><span class="avatar md" style="background:#8a5a24">'+esc(initials(row.display_name))+'</span>'
@@ -2155,7 +2440,13 @@ async function dbFindByNumber(num){
     }
   }catch(e){
     if(box) box.innerHTML="";
-    toast((e&&e.message)?e.message:"Dhoondhne mein masla hua — dobara try karein",3600);
+    /* Asal database error (SQL ki khami waghera) user ko NA dikhao —
+       wo sirf console mein rahe taake masla pehchana ja sake. User ko
+       saaf paigham mile; sirf rate-limit wala paigham jaisa hai waisa
+       dikhao, kyunke wo user ke liye actionable hai. */
+    var emsg=(e&&e.message)?String(e.message):"";
+    if(/too many lookups|daily lookup limit/i.test(emsg)) toast(emsg,3600);
+    else { if(window.console&&console.warn) console.warn("find_user_by_number error:",e); toast("Dhoondhne mein masla hua — dobara try karein",3600); }
   }
 }
 async function dbOpenPeerChat(row){
@@ -2449,7 +2740,7 @@ function doLogout(){
   /* Database session bhi band karo aur Realtime bhi — warna doosri
      device ke messages is band session par aate rahenge. */
   if(DB_ON){ dbUnsubscribeAll(); try{ sb.auth.signOut(); }catch(e){} }
-  dbSeedDone=false; dbAttCache=null; dbNotesCache={}; dbAnnCache={}; dbProfiles={};
+  dbSeedDone=false; dbAttCache=null; dbNotesCache={}; dbAnnCache={}; dbProfiles={}; state.myPhone="";
   CHATS.forEach(function(c){ if(c.db){ if(String(c.id).indexOf("db_")===0 || String(c.id).indexOf("u_")===0){ c._gone=true; } c.db=false; c.dbClassId=null; c.dbCode=null; c.dbPeerId=null; } });
   for(var ci=CHATS.length-1; ci>=0; ci--){ if(CHATS[ci]._gone) CHATS.splice(ci,1); }
   if(state.user) state.user.id=null;
@@ -2468,6 +2759,10 @@ function doLogout(){
   var ls=$("loginScreen"); ls.style.display="flex"; ls.scrollTop=0;
   var le=$("loginError"); if(le) le.textContent="";
   loginDone=false;
+  /* Role selection bhi reset: agla account apne role se aayega,
+     pichle account ka chuna hua role us par nahi lagega. */
+  rolePicked=false;
+  document.querySelectorAll(".role-btn").forEach(function(x){ x.classList.toggle("on", x.getAttribute("data-role")==="Student"); });
   toast("Logged out — log in again with your email to continue.");
   navSilent=false;
 }
@@ -2476,6 +2771,7 @@ function settingsHTML(){
   function sw(key,label){ return '<button class="switch" role="switch" aria-checked="'+(S[key]?"true":"false")+'" data-switch data-setting="'+key+'" aria-label="'+label+'"></button>'; }
   return '<button class="set-row" data-act="profile-edit"><span class="avatar lg" style="background:#8a6d4f">'+esc(initials(state.user.name))+'</span><span class="tt"><b>'+esc(state.user.name)+' ('+esc(state.user.role)+')</b><span>'+esc(state.user.email||"Logged in with email")+' • Assalamu alaikum! 🌙</span></span></button>'
   +'<div style="border-top:1px solid var(--border)"></div>'
+  +'<button class="set-row" data-act="classes"><span class="ic">'+ICONS.chat+'</span><span class="tt"><b>My Classes</b><span>Classes (institute) — your classes &amp; join requests</span></span></button>'
   +'<button class="set-row" data-act="account"><span class="ic">'+ICONS.person+'</span><span class="tt"><b>Account</b><span>Email login — no phone number</span></span></button>'
   +'<button class="set-row" data-act="privacy"><span class="ic">'+ICONS.lock+'</span><span class="tt"><b>Privacy</b><span>Last seen, profile photo, groups</span></span></button>'
   +'<div class="set-row" style="cursor:default"><span class="ic">'+ICONS.bell+'</span><span class="tt"><b>Class notifications</b><span>Message tones for live classes</span></span>'+sw("notifications","Class notifications")+'</div>'
@@ -2496,8 +2792,8 @@ function newChatHTML(){
   CHATS.filter(function(c){ return !c.group; }).forEach(function(c){
     h+='<button class="set-row" data-openchat="'+c.id+'"><span class="avatar md" style="background:'+avColor(c.color)+'">'+esc(initials(c.name))+'</span><span class="tt"><b>'+esc(c.name)+'</b><span>'+(c.online?"online":"Banat Connect student")+'</span></span></button>';
   });
-  h+='<div class="section-label">Groups &amp; classes</div>';
-  CHATS.filter(function(c){ return c.group; }).forEach(function(c){
+  h+='<div class="section-label">Groups</div>';
+  CHATS.filter(function(c){ return c.group && !isClassChat(c); }).forEach(function(c){
     h+='<button class="set-row" data-openchat="'+c.id+'"><span class="avatar md" style="background:'+avColor(c.color)+'">'+esc(initials(c.name))+'</span><span class="tt"><b>'+esc(c.name)+'</b><span>'+esc(c.sub||"Group")+'</span></span></button>';
   });
   return h;
@@ -2513,7 +2809,8 @@ function profileHTML(c){
   +'<button class="set-row" data-act="material-notes"><span class="ic">'+ICONS.data+'</span><span class="tt"><b>Notes &amp; files</b><span>PDFs and documents shared in this chat</span></span></button>'
   +'<button class="set-row" data-act="material-assign"><span class="ic">'+ICONS.chat+'</span><span class="tt"><b>Assignments</b><span>Homework set in this chat</span></span></button>'
   +'<button class="set-row" data-act="material-announce"><span class="ic">'+ICONS.bell+'</span><span class="tt"><b>Announcements</b><span>Notices from the teacher &amp; admin</span></span></button>'
-  +(c.group && isTeacher() ? '<div style="border-top:1px solid var(--border)"></div><button class="set-row" data-act="managestudents"><span class="ic">'+ICONS.person+'</span><span class="tt"><b>Manage students</b><span>Approve or remove students in this class</span></span></button>' : "");
+  +(c.group && isTeacher() ? '<div style="border-top:1px solid var(--border)"></div><button class="set-row" data-act="managestudents"><span class="ic">'+ICONS.person+'</span><span class="tt"><b>Manage students</b><span>Approve or remove students in this class</span></span></button>' : "")
+  +(isClassChat(c) ? '<button class="set-row" data-attendance="'+c.id+'"><span class="ic">'+ICONS.data+'</span><span class="tt"><b>Attendance</b><span>'+(isTeacher()?"Mark today's attendance for this class":"See your attendance for today")+'</span></span></button>' : "");
 }
 /* ================= REAL SCREENS (built on the demo data) ================= */
 function accountMenuHTML(){
@@ -2539,7 +2836,7 @@ function profileEditHTML(){
   +'<button class="big-btn" data-act="saveprofile">Save profile</button>'
   +'<div style="border-top:1px solid var(--border);margin-top:1.1rem;padding-top:.4rem">'
   +'<label class="fld-label" for="profPhone">Apna number save karein (optional)</label>'
-  +'<input class="fld" id="profPhone" type="tel" placeholder="e.g. 0300 1234567" autocomplete="tel" />'
+  +'<input class="fld" id="profPhone" type="tel" value="'+esc(state.myPhone||"")+'" placeholder="e.g. 0300 1234567" autocomplete="tel" />'
   +'<button class="big-btn" data-act="savephone">Save karein</button>'
   +'<div style="font-size:.82rem;color:var(--muted);margin-top:.45rem;line-height:1.5">Sirf aap dekh sakte hain — aap ka number kabhi kisi ko nazar nahi aata. Is se doosre aap ko number se dhoondh sakte hain.</div>'
   +'</div>'
@@ -2573,7 +2870,7 @@ function storageHTML(){
   +'<div class="text-row"><b>Voice notes &amp; photos you send</b><span>Kept only for this session, in this tab — they are not saved to any server.</span></div>';
 }
 function helpHTML(){
-  return '<div class="text-row" style="border-top:none"><b>How do I join a live class?</b><span>Open the Classes tab and tap “Join live class” on the Tajweed card, or tap Join live class on the Home screen. You join with camera off and mic muted — raise your hand to speak.</span></div>'
+  return '<div class="text-row" style="border-top:none"><b>How do I join a class?</b><span>Classes are separate from the general app: open the My Classes tab at the bottom (or More → My Classes), write your class code and send a join request. Your institute’s teacher approves it — that verification happens only once; after that the class is always yours, and you can join its live class from the class card there. You join with camera off and mic muted — raise your hand to speak.</span></div>'
   +'<div class="text-row"><b>The mic is not recording — what do I do?</b><span>Allow microphone permission for the app when asked. If recording is blocked in the app view, Banat Connect opens your device voice recorder instead, and the recording is sent as a voice note.</span></div>'
   +'<div class="text-row"><b>Can anyone see my phone number?</b><span>No. Banat Connect never asks for a phone number — you log in with email only, and other students see only your name and class.</span></div>'
   +'<div class="text-row"><b>Is Banat Connect free?</b><span>Yes — free for female students. There are no fees and no payments inside the app.</span></div>'
@@ -2619,17 +2916,36 @@ function newCommunityHTML(){
 }
 function classChats(){ return CHATS.filter(function(c){ return c.group && c.id!=="announce"; }); }
 function classesHTML(){
+  /* GATED CLASSES AREA — ye screen sirf More menu se khulti hai;
+     app ke front (Home / Calls / Groups) par classes ka koi
+     shortcut nahi hai. Neeche: meri approved classes + (student ke
+     liye) code se join REQUEST + pending requests ki halat, aur
+     (teacher ke liye) Pending requests ka darwaza. */
   var h;
   if(isTeacher()){
-    /* Teacher: create + manage. No join-by-code — teachers create and
-       manage classes instead of joining them. */
+    /* Teacher: create + manage + join requests approve/reject.
+       Teachers classes banati hain — join-by-code un ke liye nahi. */
+    var pendCount=jrPendingEntries().filter(function(e){ return !e.mine; }).length + jrTeacherCache.length;
     h='<div class="sheet-pad" style="padding-bottom:0"><div style="display:flex;gap:.5rem"><button class="mini-btn" data-act="createclass" style="flex:1">+ Create class</button></div>'
-    +'<p style="font-size:.86rem;color:var(--muted);line-height:1.5;margin:.55rem 0 0">As the teacher you create and manage classes — edit a class, remove it, or manage its students. Students join your classes with a class code.</p></div>';
+    +'<p style="font-size:.86rem;color:var(--muted);line-height:1.5;margin:.55rem 0 0">As the teacher you create and manage classes — edit a class, remove it, or manage its students. Students join your classes by sending a request with the class code; you approve it below.</p>'
+    +'<button class="set-row" data-act="joinrequests" style="border:1px solid var(--border);border-radius:16px;margin-top:.6rem"><span class="ic">'+ICONS.bell+'</span><span class="tt"><b>Join requests'+(pendCount?' <span class="badge">'+pendCount+'</span>':"")+'</b><span>Students waiting for your approval</span></span></button></div>';
   } else {
-    /* Student: join by code only. No Create class, no manage tools. */
-    h='<div class="sheet-pad" style="padding-bottom:0"><label class="fld-label" for="joinCode" style="margin-top:.2rem">Join a class with a code</label>'
-    +'<div class="link-box" style="margin-top:0"><input class="fld" id="joinCode" type="text" placeholder="Class code — try: hifz" /><button class="mini-btn" data-act="joinclasscode">Join class</button></div>'
-    +'<p style="font-size:.86rem;color:var(--muted);line-height:1.5;margin:.55rem 0 0">Enter the code your teacher gave you to join her class. Your classes are listed below.</p></div>';
+    /* Student: code se REQUEST bhejna — instant join NAHI. Institute
+       approve kare to membership milti hai; approve hone tak halat
+       "Approval ka intezar hai" neeche nazar aati hai. */
+    h='<div class="sheet-pad" style="padding-bottom:0"><label class="fld-label" for="joinCode" style="margin-top:.2rem">Class join karne ki request bhejein</label>'
+    +'<div class="link-box" style="margin-top:0"><input class="fld" id="joinCode" type="text" placeholder="Class code — try: fiqh" /><button class="mini-btn" data-act="joinclasscode">Request bhejein</button></div>'
+    +'<p style="font-size:.86rem;color:var(--muted);line-height:1.5;margin:.55rem 0 0">Code likh kar request bhejein — institute ki ustadha approve karein gi, tab hi aap class ki member banein gi. Verification sirf pehli dafa hoti hai: aik dafa approve ho jayein to dobara kabhi nahi mangi jati.</p></div>';
+    var mine=jrMyPending();
+    if(mine.length){
+      h+='<div class="section-label" style="padding-top:.7rem">Meri pending requests</div>';
+      mine.forEach(function(e){
+        h+='<div class="p-row"><span class="avatar sm" style="background:#8a6d4f">'+esc(initials(e.className))+'</span>'
+        +'<span class="tt"><b>'+esc(e.className)+'</b><span>⏳ Approval ka intezar hai — institute ki tasdeeq baqi hai</span></span>'
+        +'<button class="p-mute off" data-jr-cancel="'+esc(e.key)+'">Cancel</button></div>';
+      });
+    }
+    h+='<div class="section-label" style="padding-top:.7rem">My classes</div>';
   }
   classChats().forEach(function(c){
     var lm=lastMsg(c);
@@ -2638,11 +2954,12 @@ function classesHTML(){
     +(c.live?'<span class="live-badge">● LIVE</span>':"")+'</div>'
     +'<div class="cc-msg">'+esc(lm.who?lm.who+": ":"")+esc(lm.t)+'</div>'
     +'<div class="cc-btns"><button class="mini-btn" data-openchat="'+c.id+'">Open chat</button>'
+    +'<button class="mini-btn done" data-attendance="'+c.id+'">Attendance</button>'
     +(c.live?'<button class="mini-btn" data-joincall="'+c.id+'">'+(isTeacher()?"Open live class":"Join live class")+'</button>':"")
     +(isTeacher()?'<button class="mini-btn done" data-calllink="'+c.id+'">Call link</button><button class="mini-btn done" data-manage-students="'+c.id+'">Manage students</button><button class="mini-btn done" data-edit-class="'+c.id+'">Edit class</button><button class="mini-btn done" data-remove-class="'+c.id+'">Remove class</button>':"")
     +'</div></div>';
   });
-  h+='<div class="empty-note">'+(isTeacher()?"Students join your classes with the class code — the short name of the class chat (for example “hifz”).":"A class code is the short name of the class chat (for example “hifz” or “arabic”). Ask your teacher for the code if you are not sure.")+'</div>';
+  h+='<div class="empty-note">'+(isTeacher()?"Students request to join with the class code — the short name of the class chat (for example “hifz”). Their requests appear under Join requests above.":"A class code is the short name of the class (for example “hifz” or “fiqh”). Ask your teacher for the code if you are not sure. Once she approves you, the class appears here — and stays, with no verification ever again.")+'</div>';
   return h;
 }
 function createClassHTML(){
@@ -2935,8 +3252,8 @@ function newCallHTML(){
   }
   var h='<div class="empty-note" style="padding:1rem 1.1rem .3rem;text-align:left">Choose who to call — tap the phone for a voice call, the camera for a video call. Everyone who taps call in the same chat joins the same call room.</div>';
   CHATS.filter(function(c){ return !c.group; }).forEach(function(c){ h+=callRow(c); });
-  h+='<div class="section-label">Classes &amp; groups</div>';
-  CHATS.filter(function(c){ return c.group; }).forEach(function(c){ h+=callRow(c); });
+  h+='<div class="section-label">Groups</div>';
+  CHATS.filter(function(c){ return c.group && !isClassChat(c); }).forEach(function(c){ h+=callRow(c); });
   return h;
 }
 function wireSheet(){
@@ -2980,6 +3297,15 @@ function wireSheet(){
     attState.present[nm]=!attState.present[nm];
     refreshSheet(attendanceHTML());
   }); });
+  body.querySelectorAll("[data-attendance]").forEach(function(b){ b.addEventListener("click",function(){
+    var ac=getChat(b.getAttribute("data-attendance")); if(!ac) return;
+    if(ac.db && ac.dbClassId && DB_ON){
+      openSheet("Attendance", '<div class="empty-note">Attendance load ho rahi hai…</div>');
+      dbLoadAttendance(ac).then(function(){ refreshSheet(attendanceHTML()); });
+      return;
+    }
+    openSheet("Attendance", attendanceHTML());
+  }); });
   body.querySelectorAll("[data-manage-students]").forEach(function(b){ b.addEventListener("click",function(){
     var mc=getChat(b.getAttribute("data-manage-students"));
     if(mc && mc.db){ openSheet("Manage students", '<div class="empty-note">Students load ho rahe hain…</div>'); dbLoadManageStudents(mc); return; }
@@ -3021,9 +3347,19 @@ function wireSheet(){
   }); });
   body.querySelectorAll("[data-approve-student]").forEach(function(b){ b.addEventListener("click",function(){
     var nm=b.getAttribute("data-approve-student"); approvedStudents[nm]=true;
+    /* Join-requests list ke saath sync: wohi student wahan bhi
+       pending ho to us ki request bhi approved ho jati hai. */
+    jrPendingEntries().forEach(function(e){ if(e.userName===nm){ e.status="approved"; e.decidedAt=Date.now(); } });
+    jrSaveLocal();
     refreshSheet(manageStudentsHTML());
     toast(nm+" approved — she can now join the class.");
   }); });
+  /* ===== Join requests (gated Classes): approve / reject / cancel ===== */
+  body.querySelectorAll("[data-jr-approve]").forEach(function(b){ b.addEventListener("click",function(){ jrApproveLocal(b.getAttribute("data-jr-approve")); }); });
+  body.querySelectorAll("[data-jr-reject]").forEach(function(b){ b.addEventListener("click",function(){ jrRejectLocal(b.getAttribute("data-jr-reject")); }); });
+  body.querySelectorAll("[data-jr-approvedb]").forEach(function(b){ b.addEventListener("click",function(){ dbDecideJoinRequest(b.getAttribute("data-jr-approvedb"), true); }); });
+  body.querySelectorAll("[data-jr-rejectdb]").forEach(function(b){ b.addEventListener("click",function(){ dbDecideJoinRequest(b.getAttribute("data-jr-rejectdb"), false); }); });
+  body.querySelectorAll("[data-jr-cancel]").forEach(function(b){ b.addEventListener("click",function(){ jrCancelMine(b.getAttribute("data-jr-cancel")); }); });
   body.querySelectorAll("[data-remove-student]").forEach(function(b){ b.addEventListener("click",function(){
     var nm=b.getAttribute("data-remove-student");
     for(var i=0;i<CLASS_PEOPLE.length;i++){ if(CLASS_PEOPLE[i].name===nm){ CLASS_PEOPLE.splice(i,1); break; } }
@@ -3039,7 +3375,7 @@ function wireSheet(){
     var act=b.getAttribute("data-act");
     if(act==="toast") toast(b.getAttribute("data-msg"));
     else if(act==="logout"){ doLogout(); }
-    else if(act==="profile-edit") openSheet("Your profile", profileEditHTML());
+    else if(act==="profile-edit"){ openSheet("Your profile", profileEditHTML()); dbLoadMyPhone(); }
     else if(act==="account") openSheet("Account", accountDetailHTML());
     else if(act==="privacy") openSheet("Privacy", privacyHTML());
     else if(act==="storage") openSheet("Storage and data", storageHTML());
@@ -3058,20 +3394,39 @@ function wireSheet(){
     else if(act==="material-assign"){ var c2=getChat(state.openId); openSheet("Assignments", assignmentsHTML(c2?c2.id:null)); }
     else if(act==="material-announce"){ var c3=getChat(state.openId); openSheet("Announcements", announcementsHTML(c3?c3.id:null)); }
     else if(act==="createclass") openSheet("Create class", createClassHTML());
+    else if(act==="classes"){ openSheet("My Classes", classesHTML()); if(isTeacher()) dbLoadJoinRequests(); }
+    else if(act==="joinrequests"){ if(!isTeacher()){ toast("Join requests sirf teacher/admin ko nazar aati hain."); return; } openSheet("Join requests", joinRequestsHTML()); dbLoadJoinRequests(); }
     else if(act==="findbynumber"){
-      var fnv=($("findNumber")?$("findNumber").value:"").trim();
+      /* Search bhi pehle canonical form mein — save wali hi form,
+         taake dono taraf ka number hamesha aik jaisa ho. */
+      var fnv=normalizePhoneInput($("findNumber")?$("findNumber").value:"");
       if(fnv.length<7){ toast("Pehle sahi number likhein, phir Dhoondhein dabayein."); return; }
       if(!DB_ON){ toast("Database se connect nahi hai — demo mode mein number search nahi chal sakta."); return; }
       dbFindByNumber(fnv);
     }
     else if(act==="savephone"){
-      var phv=($("profPhone")?$("profPhone").value:"").trim();
+      /* Save bhi pehle canonical form mein — search wali hi form,
+         taake save aur search ka number hamesha match kare. */
+      var phv=normalizePhoneInput($("profPhone")?$("profPhone").value:"");
       if(phv.length<7){ toast("Pehle sahi number likhein, phir Save karein dabayein."); return; }
       if(!DB_ON || !state.user.id){ toast("Database se connect nahi hai — number save nahi ho saka."); return; }
       sb.from("private_contacts").upsert({user_id:state.user.id, phone_number:phv},{onConflict:"user_id"}).then(function(r){
-        if(r.error){ toast("Number save nahi hua — dobara try karein"); return; }
-        var pi=$("profPhone"); if(pi) pi.value="";
+        if(r.error){ if(window.console&&console.warn) console.warn("private_contacts save error:",r.error); toast("Number save nahi hua — dobara try karein"); return; }
+        /* Save kamyab: number field mein REHTA hai aur cache mein bhi
+           mehfooz hota hai, taake profile dobara khulne par wapas
+           dikhe. (Pehle yahan field khali kar diya jata tha — save
+           kamyab hone par bhi field khali lagta tha, aur profile
+           dobara kholne par number kahin se parha hi nahi jata tha,
+           is liye number hamesha "save nahi hua" lagta tha.) Toast
+           sirf is kamyab save ke baad aata hai. */
+        state.myPhone=phv;
+        var pi=$("profPhone"); if(pi) pi.value=phv;
         toast("Number save ho gaya — ye sirf aap ko dikhta hai, kisi aur ko kabhi nazar nahi aayega.");
+      }, function(e){
+        /* Network-level nakami (request pohnchi hi nahi) par bhi
+           kamyabi wala toast KABHI nahi — sirf nakami ka paigham. */
+        if(window.console&&console.warn) console.warn("private_contacts save failed:",e);
+        toast("Number save nahi hua — dobara try karein");
       });
     }
     else if(act==="dbmarkatt"){
@@ -3106,7 +3461,7 @@ function wireSheet(){
         return;
       }
       var nid="class"+Date.now();
-      CHATS.unshift({id:nid,name:nm,sub:sub||"New class",color:Math.floor(Math.random()*COLORS.length),group:true,unread:0,time:"now",
+      CHATS.unshift({id:nid,name:nm,sub:sub||"New class",color:Math.floor(Math.random()*COLORS.length),group:true,classGroup:true,unread:0,time:"now",
         msgs:[{f:"them",t:"Class created — welcome! Messages, notes and live classes for "+nm+" will appear here.",time:nowTime()}],
         replies:["Assalamu alaikum, welcome to the class! 🌸"]});
       if(COMMUNITIES[0]) COMMUNITIES[0].groups.push(nm);
@@ -3115,33 +3470,13 @@ function wireSheet(){
       toast("Class created: "+nm);
     }
     else if(act==="joinclasscode"){
+      /* Gated flow: code se ab instant join NAHI hota — pehle join
+         REQUEST jati hai, institute approve kare to membership
+         milti hai (jrRequestJoin poora flow sambhalta hai: pehle-se
+         -member check, DB request, local demo fallback). */
       var code=($("joinCode")?$("joinCode").value:"").trim().toLowerCase();
-      if(DB_ON && state.user.id && code){
-        /* Pehle database mein code dhoondho; mil jaye to membership
-           insert karke wahi class kholo. Na mile to neeche wala purana
-           demo wala rasta chalta hai. */
-        sb.from("classes").select("*").ilike("code",code).limit(1).then(async function(r){
-          var cls=(r.data&&r.data[0])||null;
-          if(!cls){
-            var foundL=null; CHATS.forEach(function(x){ if(x.id.toLowerCase()===code) foundL=x; });
-            if(foundL){ closeSheet(); switchView("chats"); openChat(foundL.id); }
-            else toast("No class with the code “"+code+"” — check the code with your teacher.");
-            return;
-          }
-          var memIns=await sb.from("class_members").insert({class_id:cls.id, user_id:state.user.id, role:state.user.role});
-          /* duplicate-member error = pehle se joined hai — masla nahi */
-          var tnames=await dbNamesFor([cls.teacher_id]);
-          var jchat=dbMergeClass(cls, tnames[cls.teacher_id]||"");
-          await dbLoadClassMessages(jchat);
-          renderChats();
-          closeSheet(); switchView("chats"); openChat(jchat.id);
-          toast("Joined class: "+cls.name);
-        });
-        return;
-      }
-      var found=null; CHATS.forEach(function(x){ if(x.id.toLowerCase()===code) found=x; });
-      if(found){ closeSheet(); switchView("chats"); openChat(found.id); }
-      else toast("No class with the code “"+code+"” in this demo — check the code with your teacher.");
+      if(!code){ toast("Pehle class code likhein, phir Request bhejein dabayein."); return; }
+      jrRequestJoin(code);
     }
     else if(act==="markatt-sheet"){
       if(!isTeacher()){ toast("Only teachers can mark attendance."); return; }
@@ -3295,6 +3630,7 @@ function switchView(v){
 document.querySelectorAll(".nav-item").forEach(function(n){ n.addEventListener("click",function(){
   var v=n.getAttribute("data-nav");
   if(v==="more"){ openSheet("Settings", settingsHTML()); return; }
+  if(v==="classes"){ openSheet("My Classes", classesHTML()); if(isTeacher()) dbLoadJoinRequests(); return; }
   switchView(v);
 }); });
 $("chips").querySelectorAll(".chip").forEach(function(ch){ ch.addEventListener("click",function(){
@@ -3635,15 +3971,18 @@ $("recSend").addEventListener("click",sendRecording);
 $("icRecCancel").addEventListener("click",cancelRecording);
 $("icRecSend").addEventListener("click",sendRecording);
 /* ===== Meezan-style dashboard wiring ===== */
-$("dashJoin").addEventListener("click",function(){ startCall("Tajweed Class — Group A",10,"video",{isClass:true}); });
-$("dashSchedule").addEventListener("click",function(){ openSheet("My classes", classesHTML()); });
+$("dashNewChat").addEventListener("click",function(){ openSheet("New chat", newChatHTML()); });
+$("dashNewGroup").addEventListener("click",function(){ openSheet("New group", newChatHTML()); });
 $("dashPill").addEventListener("click",function(){ openSheet("Account", accountMenuHTML()); });
 document.querySelectorAll("[data-dash]").forEach(function(b){ b.addEventListener("click",function(){
   var k=b.getAttribute("data-dash");
-  if(k==="live") startCall("Tajweed Class — Group A",10,"video",{isClass:true});
-  else if(k==="chats"){ switchView("chats"); var si=$("searchInput"); if(si) si.focus(); }
-  else if(k==="notes") openSheet("Class notes", notesHTML(null));
-  else if(k==="attendance") openSheet("Attendance", attendanceHTML());
+  /* Front ke quick actions sirf GENERAL hain (chat / group / calls /
+     contacts) — classes ka koi shortcut yahan nahi; wo More →
+     My Classes ke gated area mein hain. */
+  if(k==="newchat") openSheet("New chat", newChatHTML());
+  else if(k==="newgroup") openSheet("New group", newChatHTML());
+  else if(k==="contacts") openSheet("Contacts", newChatHTML());
+  else if(k==="calls") switchView("calls");
 }); });
 document.querySelectorAll("[data-quick]").forEach(function(b){ b.addEventListener("click",function(){ switchView("chats"); openChat(b.getAttribute("data-quick")); }); });
 document.querySelectorAll("[data-quick-add]").forEach(function(b){ b.addEventListener("click",function(){ openSheet("New chat", newChatHTML()); }); });
@@ -3660,6 +3999,7 @@ $("mainMenu").querySelectorAll("[data-menu]").forEach(function(b){ b.addEventLis
   if(k==="settings") openSheet("Settings", settingsHTML());
   else if(k==="logout") doLogout();
   else if(k==="newgroup") openSheet("New group", newChatHTML());
+  else if(k==="classes"){ openSheet("My Classes", classesHTML()); if(isTeacher()) dbLoadJoinRequests(); }
   else if(k==="starred") openSheet("Starred messages", starredHTML());
   else if(k==="broadcast") openSheet("New broadcast", broadcastHTML());
   else if(k==="payments") openSheet("Payments", paymentsHTML());
@@ -3853,9 +4193,15 @@ $("chatWho").addEventListener("click",function(){ var c=getChat(state.openId); i
 $("frontContinue").addEventListener("click",function(){ $("frontScreen").style.display="none"; });
 
 /* ================= EMAIL LOGIN ================= */
+/* rolePicked: user ne IS page-load par role button khud tap kiya hai.
+   Sirf tab hi login-form ka role account ke saved role ko override
+   karega — warna default "Student" (jo button pehle se selected
+   hota hai) har Teacher ke account ko Student bana deta. */
+var rolePicked=false;
 document.querySelectorAll(".role-btn").forEach(function(b){ b.addEventListener("click",function(){
   document.querySelectorAll(".role-btn").forEach(function(x){ x.classList.remove("on"); });
   b.classList.add("on");
+  rolePicked=true;
   state.user.role=b.getAttribute("data-role");
 }); });
 /* Login runs through ONE function reached three ways — the form's submit
@@ -3872,8 +4218,7 @@ document.querySelectorAll(".role-btn").forEach(function(b){ b.addEventListener("
 function applyRoleUI(){
   var t=isTeacher();
   var bc=document.querySelector('[data-menu="broadcast"]'); if(bc) bc.style.display=t?"":"none";
-  var dj=$("dashJoin"); if(dj) dj.textContent=t?"Start live class":"Join live class";
-  var ds=document.querySelector(".dash-stat small"); if(ds) ds.textContent=t?"teaching • 1 live now":"joined • 1 live now";
+  var ds=document.querySelector(".dash-stat small"); if(ds) ds.textContent="chats, groups & calls";
   renderCalls();
 }
 var loginDone=false;
@@ -3884,9 +4229,12 @@ function finishLogin(welcomeText){
   var name=state.user.name;
   $("ownAvatar").textContent=initials(name);
   var dn=$("dashName"); if(dn) dn.textContent=name+" • بنات کنیکٹ";
-  var dp=$("dashPill"); if(dp) dp.innerHTML="Banat Institute • "+esc(state.user.role)+" Account <span class=\"chev\">▾</span>";
+  var dp=$("dashPill"); if(dp) dp.innerHTML=esc(state.user.role)+" Account <span class=\"chev\">▾</span>";
   var fs=$("frontScreen"); if(fs) fs.style.display="none";
   $("loginScreen").style.display="none";
+  /* Approved class memberships wapas le aao (verification-once):
+     re-login par dobara approval nahi mangta. */
+  jrRestoreApproved();
   applyRoleUI();
   /* Back-navigation base: home is the root — the system back button
      leaves the app from here; every screen opened from here pushes
@@ -3905,12 +4253,36 @@ async function dbEnterWithUser(user, welcomeText){
     var r=await sb.from("profiles").select("*").eq("id",user.id).single();
     if(!r.error && r.data) profile=r.data;
   }catch(e){}
+  /* SAHI ROLE ka faisla — pehle ye sirf profiles.role par hota tha.
+     Masla: sign-up par profiles row database trigger bana deta hai
+     aur us mein role aksar default "Student" reh jata hai, chahe
+     account Teacher chun kar hi kyun na banaya gaya ho. Aur login
+     screen par Teacher chunna bhi kuch nahi badalta tha — is liye
+     Teacher ko hamesha Student wali screen milti thi.
+     Ab tarteeb ye hai:
+       1) Is login par user ne khud role button tap kiya ho to wahi
+          role (galat bane hue account ki correction bhi yahin se
+          hoti hai);
+       2) warna sign-up ke waqt auth metadata mein save hua role;
+       3) warna profiles row ka role. */
+  var metaRole=(user.user_metadata&&user.user_metadata.role)||null;
+  var pickedRole=null;
+  if(rolePicked){ var rbP=document.querySelector(".role-btn.on"); if(rbP) pickedRole=rbP.getAttribute("data-role"); }
+  var intendedRole=pickedRole||metaRole||null;
   if(!profile){
-    var roleBtn=document.querySelector(".role-btn.on");
     var ins={ id:user.id, display_name:(user.user_metadata&&user.user_metadata.display_name)||$("loginName").value.trim()||String(user.email||"Student").split("@")[0],
-      role:(user.user_metadata&&user.user_metadata.role)||(roleBtn?roleBtn.getAttribute("data-role"):"Student"), email:user.email };
+      role:intendedRole||"Student", email:user.email };
     try{ var ir=await sb.from("profiles").insert(ins).select().single(); if(!ir.error && ir.data) profile=ir.data; }catch(e){}
     if(!profile) profile=ins;
+  } else if(intendedRole && intendedRole!==profile.role){
+    /* Saved role galat hai — is login ke sahi role se profiles row
+       (aur auth metadata) update kar do, taake correction mustaqil
+       ho jaye aur agli dafa session-restore par bhi Teacher ki
+       screen hi aaye. Update fail ho (masalan RLS) to bhi is
+       session ke liye sahi role chalega. */
+    profile.role=intendedRole;
+    try{ await sb.from("profiles").update({ role:intendedRole }).eq("id",user.id); }catch(e){}
+    try{ await sb.auth.updateUser({ data:{ role:intendedRole } }); }catch(e){}
   }
   state.user={ id:user.id, name:profile.display_name, email:profile.email||user.email, role:profile.role||"Student" };
   dbProfiles[user.id]=profile.display_name;
@@ -3925,6 +4297,7 @@ function setAuthMode(m){
   var lb=$("loginBtn"); if(lb) lb.textContent = isUp ? "Create account" : "Continue with email";
   var lk=$("authModeLink"); if(lk) lk.textContent = isUp ? "Pehle se account hai? Log in karein" : "Naya account banayein";
   var pw=$("loginPass"); if(pw) pw.setAttribute("autocomplete", isUp ? "new-password" : "current-password");
+  var rh=$("roleHint"); if(rh) rh.style.display = isUp ? "none" : "";
   var er=$("loginError"); if(er) er.textContent="";
 }
 async function doLogin(){
@@ -3992,7 +4365,9 @@ function handleGoogleLoginTap(){
     return;
   }
   if(!DB_ON){ toast("Database se connect nahi hai — Google login abhi nahi chal sakta.",3800); return; }
-  sb.auth.signInWithOAuth({ provider:"google", options:{ redirectTo: window.location.href } }).then(function(r){
+  /* Redirect hamesha asal deployed app par wapas aata hai (page ka
+     apna address kabhi nahi parha jata). */
+  sb.auth.signInWithOAuth({ provider:"google", options:{ redirectTo: "https://banat-connect-whatsapp.vercel.app" } }).then(function(r){
     if(r.error) toast("Google login nahi ho saka — dobara try karein, ya email se login karein.",3600);
   });
 }
