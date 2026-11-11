@@ -1385,7 +1385,7 @@
       <button class="jitsi-end" id="jitsiEndBtn">End call</button>
     </div>
     <div class="jitsi-frame" id="jitsiFrame"></div>
-    <div class="jitsi-note">🔒 Females-only call — everyone here joined from this same class chat in Banat Connect. If the call does not load on this screen, tap “Open in browser” — the same call opens there.</div>
+    <div class="jitsi-note">🔒 Females-only call — everyone here joined from this same class chat in Banat Connect. The call joins right here inside the app.</div>
   </div>
 </div>
 
@@ -2145,6 +2145,17 @@ function joinRequestsHTML(){
 }
 jrLoadLocal();
 
+/* Client-generated message id — insert ke saath hi bhej dete hain,
+   taake insert par .select() (RETURNING) ki zaroorat hi na pare:
+   RETURNING wali visibility re-check aik aur RLS policy evaluation
+   hoti hai, aur send ka kaam us ke baghair zyada mazboot hai.
+   Realtime dedupe (_dbIds) ke liye bhi yahi id kaam aati hai. */
+function dbUuid(){
+  try{ if(window.crypto && crypto.randomUUID) return crypto.randomUUID(); }catch(e){}
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,function(ch){
+    var r=Math.floor(Math.random()*16), v=ch==="x"?r:(r&0x3|0x8); return v.toString(16);
+  });
+}
 function dbFmtTime(iso){
   try{ var d=new Date(iso); var h=d.getHours(),m=d.getMinutes(),ap=h>=12?"PM":"AM"; h=h%12||12; return h+":"+(m<10?"0":"")+m+" "+ap; }catch(e){ return nowTime(); }
 }
@@ -2343,19 +2354,33 @@ function dbOnAnnouncementInsert(row){
    Koi simulated reply nahi, koi fake typing nahi — asal log jawab dein ge. --- */
 async function dbSendText(c, text){
   if(!DB_ON || !state.user.id){ toast("Message nahi bheja ja saka — dobara try karein"); return; }
-  var payload={ sender_id: state.user.id, body: text, kind:"text" };
+  var payload={ id: dbUuid(), sender_id: state.user.id, body: text, kind:"text" };
   if(c.dbClassId) payload.class_id=c.dbClassId;
   else if(c.dbPeerId) payload.recipient_id=c.dbPeerId;
   else { toast("Message nahi bheja ja saka — dobara try karein"); return; }
   try{
-    var r=await sb.from("messages").insert(payload).select().single();
-    if(r.error || !r.data) throw r.error||new Error("insert failed");
-    var m={f:"me",t:text,time:nowTime(),s:"read",_dbId:r.data.id};
-    dbMarkRendered(c,r.data.id);
+    /* Plain insert, koi .select() nahi: id client ne banayi hai, is
+       liye RETURNING ki zaroorat nahi — aur send ab messages ki
+       SELECT policy ki visibility re-check par munhasir nahi hai. */
+    var r=await sb.from("messages").insert(payload);
+    if(r.error) throw r.error;
+    var m={f:"me",t:text,time:nowTime(),s:"read",_dbId:payload.id};
+    dbMarkRendered(c,payload.id);
     c.msgs.push(m); c.time="now";
     if(state.openId===c.id) renderMsgs();
     renderChats();
-  }catch(e){ toast("Message nahi bheja ja saka — dobara try karein"); }
+  }catch(e){
+    /* Asal database error sirf console mein — user ko saaf paigham.
+       (Isi chhupe hue error ki wajah se RLS recursion wala masla
+       pehle pakra nahi gaya tha.) Likha hua message zaya nahi hota:
+       composer khali ho to text wapas daal dete hain. */
+    if(window.console&&console.warn) console.warn("dbSendText error:",e);
+    toast("Message nahi bheja ja saka — dobara try karein");
+    if(state.openId===c.id){
+      var mi=$("msgInput");
+      if(mi && !mi.value){ mi.value=text; mi.dispatchEvent(new Event("input")); }
+    }
+  }
 }
 /* --- DB chat mein voice note / file: pehle Storage upload, phir message row.
    media_url mein storage PATH save hota hai (public URL nahi); doosre
@@ -2372,14 +2397,16 @@ async function dbSendMediaFile(c, fileOrBlob, kind, localUrl, fileName, durText)
     /* messages.kind mein 'image' allowed nahi hai (schema CHECK) —
        photo bhi kind 'file' se jati hai; local display type alag rehta hai. */
     var dbKind = kind==="voice" ? "voice" : "file";
-    var payload={ sender_id: me, body: fileName||"", kind: dbKind, media_url: path };
+    var payload={ id: dbUuid(), sender_id: me, body: fileName||"", kind: dbKind, media_url: path };
     if(c.dbClassId) payload.class_id=c.dbClassId;
     else if(c.dbPeerId) payload.recipient_id=c.dbPeerId;
     else throw new Error("no target");
-    var r=await sb.from("messages").insert(payload).select().single();
-    if(r.error || !r.data) throw r.error||new Error("insert failed");
-    dbMarkRendered(c,r.data.id);
-    var m={ f:"me", time:nowTime(), s:"read", _dbId:r.data.id, _storagePath:path, url:localUrl };
+    /* Plain insert (client-generated id) — dbSendText wali hi wajah:
+       .select() ki RETURNING visibility re-check par munhasir nahi. */
+    var r=await sb.from("messages").insert(payload);
+    if(r.error) throw r.error;
+    dbMarkRendered(c,payload.id);
+    var m={ f:"me", time:nowTime(), s:"read", _dbId:payload.id, _storagePath:path, url:localUrl };
     if(kind==="voice"){ m.type="voice"; m.dur=durText||"Voice note"; m.t="Voice note"; }
     else if(kind==="image"){ m.type="image"; m.t=""; }
     else { m.type="file"; m.fileName=fileName; m.ext=((fileName||"FILE").split(".").pop()||"FILE").toUpperCase().slice(0,4); m.doc=fmtBytes(fileOrBlob.size||0); m.t=fileName; }
@@ -2387,6 +2414,7 @@ async function dbSendMediaFile(c, fileOrBlob, kind, localUrl, fileName, durText)
     if(state.openId===c.id) renderMsgs();
     renderChats();
   }catch(e){
+    if(window.console&&console.warn) console.warn("dbSendMediaFile error:",e);
     toast(kind==="voice" ? "Voice note upload nahi hui — dobara try karein" : "File upload nahi hui — dobara try karein");
   }
 }
@@ -4120,7 +4148,14 @@ function openJitsiCall(kind,chat){
      joiner in its lobby).
      Same room name per chat, so everyone tapping Call in this chat —
      now or later — lands in the SAME room. */
-  var frag="config.prejoinConfig.enabled=false&userInfo.displayName="+encodeURIComponent((state.user&&state.user.name)||"");
+  /* config.disableDeepLinking=true LAZMI hai: is ke baghair phone
+     (mobile browser / APK WebView) par Jitsi conference ki bajaye
+     apna "How do you want to join this meeting?" wala beech ka
+     page dikha deta hai (Join in app / Download / Join in browser)
+     — desktop par ye page nahi aata, is liye masla sirf phone par
+     nazar aata tha. Ye flag us page ko band karke call ko app ke
+     andar seedha join kar deta hai. */
+  var frag="config.prejoinConfig.enabled=false&config.disableDeepLinking=true&userInfo.displayName="+encodeURIComponent((state.user&&state.user.name)||"");
   if(!isVideo) frag+="&config.startAudioOnly=true&config.startWithVideoMuted=true";
   var url="https://fairmeeting.net/"+roomName+"#"+frag;
   $("jitsiTitle").textContent=(isVideo?"Video call — ":"Voice call — ")+c.name;
@@ -4149,7 +4184,7 @@ function openJitsiCall(kind,chat){
     if(seq!==jitsiCallSeq || !$("jitsiOverlay").classList.contains("open")) return;
     if(!ok){ plainIframe(); return; }
     try{
-      var cfg={ prejoinConfig:{ enabled:false } };
+      var cfg={ prejoinConfig:{ enabled:false }, disableDeepLinking:true };
       if(!isVideo){ cfg.startAudioOnly=true; cfg.startWithVideoMuted=true; }
       var api=new JitsiMeetExternalAPI("fairmeeting.net",{
         roomName:roomName,
